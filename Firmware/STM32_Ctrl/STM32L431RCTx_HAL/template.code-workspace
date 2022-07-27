@@ -12,5 +12,8 @@
 			"name": "STM32L431RCTx_HAL_GCC",
 			"path": "Makefile"
 		}
-	]
+	],
+	"settings": {
+		"makefile.extensionOutputFolder": "./.vscode"
+	}
 }

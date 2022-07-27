@@ -9,7 +9,10 @@
             "servertype": "openocd",
             "executable": "..\\build\\Makefile\\template\\Makefile.elf",
             "runToEntryPoint": "main",
-            "configFiles": []
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/stm32l4x.cfg"
+            ]
         }
     ]
 }

@@ -9,7 +9,10 @@
             "servertype": "openocd",
             "executable": "..\\build\\MDK-ARM\\template\\MDK-ARM.elf",
             "runToEntryPoint": "main",
-            "configFiles": []
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/stm32l4x.cfg"
+            ]
         }
     ]
 }

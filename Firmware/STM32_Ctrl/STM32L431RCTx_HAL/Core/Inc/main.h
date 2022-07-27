@@ -57,6 +57,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BOARD_ADC_KEY_Pin GPIO_PIN_0
+#define BOARD_ADC_KEY_GPIO_Port GPIOA
+#define BOARD_OLED_DC_Pin GPIO_PIN_0
+#define BOARD_OLED_DC_GPIO_Port GPIOB
+#define BOARD_OLED_CS_Pin GPIO_PIN_1
+#define BOARD_OLED_CS_GPIO_Port GPIOB
+#define BOARD_ZK_CS_Pin GPIO_PIN_2
+#define BOARD_ZK_CS_GPIO_Port GPIOB
+#define BOARD_OLED_SPI2_SCK_Pin GPIO_PIN_13
+#define BOARD_OLED_SPI2_SCK_GPIO_Port GPIOB
+#define BOARD_OLED_SPI2_SDI_Pin GPIO_PIN_14
+#define BOARD_OLED_SPI2_SDI_GPIO_Port GPIOB
+#define BOARD_OLED_SPI2_SDO_Pin GPIO_PIN_15
+#define BOARD_OLED_SPI2_SDO_GPIO_Port GPIOB
+#define BOARD_DEBUG_USART1_TX_Pin GPIO_PIN_9
+#define BOARD_DEBUG_USART1_TX_GPIO_Port GPIOA
+#define BOARD_DEBUG_USART1_RX_Pin GPIO_PIN_10
+#define BOARD_DEBUG_USART1_RX_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
