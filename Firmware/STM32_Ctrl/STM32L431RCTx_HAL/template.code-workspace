@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "STM32L431RCTx_HAL",
+			"path": "."
+		},
+		{
+			"name": "STM32L431RCTx_HAL_ARMCC",
+			"path": "MDK-ARM"
+		},
+		{
+			"name": "STM32L431RCTx_HAL_GCC",
+			"path": "Makefile"
+		}
+	]
+}

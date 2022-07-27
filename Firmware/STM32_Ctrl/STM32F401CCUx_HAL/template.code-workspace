@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "STM32F401CCUx_HAL",
+			"path": "."
+		},
+		{
+			"name": "STM32F401CCUx_HAL_ARMCC",
+			"path": "MDK-ARM"
+		},
+		{
+			"name": "STM32F401CCUx_HAL_GCC",
+			"path": "Makefile"
+		}
+	]
+}

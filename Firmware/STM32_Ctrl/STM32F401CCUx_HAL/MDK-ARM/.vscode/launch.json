@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceRoot}",
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "openocd",
+            "servertype": "openocd",
+            "executable": "..\\build\\MDK-ARM\\template\\MDK-ARM.elf",
+            "runToEntryPoint": "main",
+            "configFiles": []
+        }
+    ]
+}

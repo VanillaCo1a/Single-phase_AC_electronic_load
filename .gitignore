@@ -1,0 +1,132 @@
+## uVision.gitignore
+
+# git ignore file for Keil µVision Project
+
+**/DebugConfig/*
+**/RTE/*
+
+# µVision 5 and µVision 4 Project screen layout file
+*.opt
+*.uv2
+*.uvgui
+*.uvgui.*
+*.uvguix
+*.uvguix.*
+
+# Listing Files
+*.cod
+*.htm
+*.i
+*.lst
+*.map
+*.map.old
+*.map.view
+*.m51
+*.m66
+*.scr
+
+# Object Files
+*.axf
+*.b[0-2][0-9]
+*.b3[0-1]
+*.crf
+*.d
+*.elf
+*.lib
+*.o
+*.obj
+*.sbr
+
+# Firmware Files
+*.bin
+*.h86
+*.hex
+
+# Build Files
+*.bat
+*._ac
+*._ia
+*.__i
+*._ii
+
+# Debugger Files
+*.ini
+
+# Other Files
+*.build_log.htm
+*.cdb
+*.cprj
+*.dep
+*.ic
+*.lin
+*.lnp
+*.orc
+*.pack
+*.pdsc
+*.plg
+*.sct
+*.scvd
+*.uvl
+*.uvla
+*.uvtsk
+*.sfd
+*.sfr
+*.svd.xml
+*.svd
+*.xml
+*.xsd
+
+# JLink Files
+JLinkLog.txt
+
+# Miscellaneous
+ref.json
+*.log
+*.mk
+*.params
+*.params.old
+*.bak
+*.ddk
+*.edk
+*.mpf
+*.mpj
+*.omf
+*.rpt
+*.s19
+*.tmp
+*.tra
+*.fed
+*.l1p
+*.l2p
+*.iex
+
+
+## CubeMX.gitignore
+
+*.mxproject
+
+
+## VisualStudioCode.gitignore
+
+**/.vscode/*
+!**/.vscode/settings.json
+!**/.vscode/tasks.json
+!**/.vscode/launch.json
+!**/.vscode/extensions.json
+!**/.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+**/.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+
+## EIDE.gitignore
+
+**/.eide/*
+!**/.eide/eide.json
+!**/.eide/template.arm.options.v5.json
+!**/.eide/template.arm.options.v6.json
+!**/.eide/template.arm.options.gcc.json
+**/.cmsis/*

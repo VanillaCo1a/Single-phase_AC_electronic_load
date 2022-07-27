@@ -1,0 +1,100 @@
+{
+    "name": "Makefile",
+    "type": "ARM",
+    "mode": "template",
+    "toolchain": "GCC",
+    "dependenceList": [
+        {
+            "groupName": "custom",
+            "depList": [
+                {
+                    "name": "default",
+                    "incList": [
+                        "./.eide/deps",
+                        "./.eide/deps"
+                    ],
+                    "libList": [],
+                    "sourceDirList": [],
+                    "defineList": [
+                        "USE_HAL_DRIVER",
+                        "STM32F401xC"
+                    ]
+                }
+            ]
+        }
+    ],
+    "compileConfig": {
+        "cpuType": "Cortex-M4",
+        "floatingPointHardware": "single",
+        "useCustomScatterFile": false,
+        "scatterFilePath": "STM32F401CCUx_FLASH.ld",
+        "storageLayout": {
+            "RAM": [
+                {
+                    "tag": "IRAM",
+                    "id": 1,
+                    "mem": {
+                        "startAddr": "0x20000000",
+                        "size": "0x5000"
+                    },
+                    "isChecked": true,
+                    "noInit": false
+                }
+            ],
+            "ROM": [
+                {
+                    "tag": "IROM",
+                    "id": 1,
+                    "mem": {
+                        "startAddr": "0x08000000",
+                        "size": "0x10000"
+                    },
+                    "isChecked": true,
+                    "isStartup": true
+                }
+            ]
+        },
+        "options": "null"
+    },
+    "uploader": "OpenOCD",
+    "srcDirs": [
+        "./.eide/deps",
+        "./../Core",
+        "./../Drivers"
+    ],
+    "virtualFolder": {
+        "name": "<virtual_root>",
+        "files": [],
+        "folders": [
+            {
+                "name": "Application",
+                "files": [],
+                "folders": [
+                    {
+                        "name": "Makefile",
+                        "files": [
+                            {
+                                "path": "startup_stm32f401xc.s"
+                            }
+                        ],
+                        "folders": []
+                    }
+                ]
+            }
+        ]
+    },
+    "excludeList": [],
+    "outDir": "..\\build\\Makefile",
+    "deviceName": null,
+    "packDir": null,
+    "uploadConfig": {
+        "bin": "",
+        "target": "stm32f4x",
+        "interface": "cmsis-dap",
+        "baseAddr": "0x08000000"
+    },
+    "uploadConfigMap": {},
+    "miscInfo": {},
+    "targets": {},
+    "version": "3.0"
+}
