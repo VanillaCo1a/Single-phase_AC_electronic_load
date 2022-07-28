@@ -7,8 +7,8 @@
 #if defined(STM32HAL)
 #include "tim.h"
 #define TIMERERROR 0    //为了修正函数运行带来的误差, 在使用不同型号芯片前需调试计算得到数值
-#define TIMERCOUNT TIM4->CNT
-#define TIMERHANDLE htim4
+#define TIMERCOUNT TIM6->CNT
+#define TIMERHANDLE htim6
 #elif defined(STM32FWLIB)
 #define TIMERERROR 0
 #define TIMER TIM4

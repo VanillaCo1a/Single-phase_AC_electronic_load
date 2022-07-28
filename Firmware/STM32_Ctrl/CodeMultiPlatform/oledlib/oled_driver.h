@@ -1,7 +1,7 @@
 #ifndef __OLED_DRIVER_H
 #define __OLED_DRIVER_H
 #include "oledlib.h"
-#define OLED_NUM 2
+#define OLED_NUM 1
 typedef enum {
     OLED_SSD1306,
     OLED_SH1106

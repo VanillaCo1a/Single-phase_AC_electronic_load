@@ -17,6 +17,9 @@
             "./../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy",
             "./../Drivers/CMSIS/Device/ST/STM32L4xx/Include",
             "./../Drivers/CMSIS/Include",
+            "./../../CodeMultiPlatform",
+            "./../../CodeMultiPlatform/device",
+            "./../../CodeMultiPlatform/oledlib",
             "./RTE/_template"
           ],
           "defineList": [
@@ -133,7 +136,7 @@
             "startAddr": "0x0",
             "size": "0x0"
           },
-          "isChecked": true,
+          "isChecked": false,
           "isStartup": false
         }
       ]
@@ -148,6 +151,11 @@
     "name": "<virtual_root>",
     "files": [],
     "folders": [
+      {
+        "name": "::CMSIS",
+        "files": [],
+        "folders": []
+      },
       {
         "name": "Application",
         "files": [],
@@ -293,9 +301,62 @@
         ]
       },
       {
-        "name": "::CMSIS",
-        "files": [],
-        "folders": []
+        "name": "Project",
+        "files": [
+          {
+            "path": "../../CodeMultiPlatform/hlw8032.c"
+          },
+          {
+            "path": "../../CodeMultiPlatform/uart.c"
+          }
+        ],
+        "folders": [
+          {
+            "name": "device",
+            "files": [
+              {
+                "path": "../../CodeMultiPlatform/device/device.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/device/protocol_hardware.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/device/protocol_software.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/device/timer.c"
+              }
+            ],
+            "folders": []
+          },
+          {
+            "name": "oledlib",
+            "files": [
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_basic.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_buffer.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_config.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_draw.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_driver.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_font&bmp.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_print.c"
+              }
+            ],
+            "folders": []
+          }
+        ]
       }
     ]
   },
@@ -421,7 +482,7 @@
                 "startAddr": "0x0",
                 "size": "0x0"
               },
-              "isChecked": true,
+              "isChecked": false,
               "isStartup": false
             }
           ]
@@ -447,6 +508,9 @@
           "../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy",
           "../Drivers/CMSIS/Device/ST/STM32L4xx/Include",
           "../Drivers/CMSIS/Include",
+          "../../CodeMultiPlatform",
+          "../../CodeMultiPlatform/device",
+          "../../CodeMultiPlatform/oledlib",
           "RTE/_template"
         ],
         "defineList": [

@@ -59,6 +59,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BOARD_ADC_KEY_Pin GPIO_PIN_0
 #define BOARD_ADC_KEY_GPIO_Port GPIOA
+#define HLW8032_USART3_TX_Pin GPIO_PIN_4
+#define HLW8032_USART3_TX_GPIO_Port GPIOC
+#define HLW8032_USART3_RX_Pin GPIO_PIN_5
+#define HLW8032_USART3_RX_GPIO_Port GPIOC
 #define BOARD_OLED_DC_Pin GPIO_PIN_0
 #define BOARD_OLED_DC_GPIO_Port GPIOB
 #define BOARD_OLED_CS_Pin GPIO_PIN_1

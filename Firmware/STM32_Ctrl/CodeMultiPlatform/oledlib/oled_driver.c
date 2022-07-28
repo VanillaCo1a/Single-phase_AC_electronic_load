@@ -10,17 +10,15 @@
 /////////////////////////    OLED配置结构体初始化    /////////////////////////
 //    OLED参数配置
 OLED_PARTypeDef oled_parameter[OLED_NUM] = {
-    {.chip = OLED_SSD1306},
     {.chip = OLED_SSD1306}};
 //    OLEDIO配置
 OLED_IOTypeDef oled_io[OLED_NUM] = {
 #if defined(STM32HAL)
-    {{.SCL_SCK = {OLED0_SCK_GPIO_Port, OLED0_SCK_Pin},
-      .SDA_SDI_OWRE = {OLED0_SDI_GPIO_Port, OLED0_SDI_Pin},
-      .CS = {OLED0_CS_GPIO_Port, OLED0_CS_Pin}},
-     .DC = {OLED0_DC_GPIO_Port, OLED0_DC_Pin}},
-    {{.SCL_SCK = {OLED1_SCL_GPIO_Port, OLED1_SCL_Pin},
-      .SDA_SDI_OWRE = {OLED1_SDA_GPIO_Port, OLED1_SDA_Pin}}},
+    {{.SCL_SCK = {BOARD_OLED_SPI2_SCK_GPIO_Port, BOARD_OLED_SPI2_SCK_Pin},
+      .SDA_SDI_OWRE = {BOARD_OLED_SPI2_SDI_GPIO_Port, BOARD_OLED_SPI2_SDI_Pin},
+      .CS = {BOARD_OLED_CS_GPIO_Port, BOARD_OLED_CS_Pin}},
+     .DC = {BOARD_OLED_DC_GPIO_Port, BOARD_OLED_DC_Pin},
+     .RST = {NULL, 0x00}},
 #elif defined(STM32FWLIBF1)
     {{.SCL_SCK = {RCC_APB2Periph_GPIOB, GPIOB, GPIO_Pin_12},
       .SDA_SDI_OWRE = {RCC_APB2Periph_GPIOB, GPIOB, GPIO_Pin_13}}},
@@ -33,8 +31,6 @@ I2C_ModuleHandleTypeDef mi2c[] = {
     {.addr = OLED_I2CADDR1, .skip = false, .speed = DEVI2C_HIGHSPEED, .errhand = DEVI2C_LEVER1}};
 SPI_ModuleHandleTypeDef mspi[] = {{.skip = false, .duplex = DEVSPI_HALF_DUPLEX}};
 OLED_CMNITypeDef oled_cmni[] = {
-    {{.protocol = I2C, .ware = SOFTWARE, .bus = &ahi2c, .modular = mi2c}},
-    {{.protocol = I2C, .ware = HARDWARE, .bus = &hi2c1, .modular = mi2c}},
     {{.protocol = SPI, .ware = SOFTWARE, .bus = &ahspi, .modular = mspi}},
     {{.protocol = SPI, .ware = HARDWARE, .bus = &hspi2, .modular = mspi}}};
 
@@ -47,14 +43,9 @@ DEV_TypeDef oled[OLED_NUM] = {
     {
         .parameter = &oled_parameter[0],
         .io = {.num = SIZE_OLEDIO, .confi = (DEVIO_TypeDef *)&oled_io[0], .init = DEVIO_InitCallBack},
-        .cmni = {.num = SIZE_OLEDCMNI, .confi = (DEVCMNI_TypeDef *)&oled_cmni[2], .init = NULL},
-    },
-    {
-        .parameter = &oled_parameter[1],
-        .io = {.num = SIZE_OLEDIO, .confi = (DEVIO_TypeDef *)&oled_io[1], .init = DEVIO_InitCallBack},
-        .cmni = {.num = SIZE_OLEDCMNI, .confi = (DEVCMNI_TypeDef *)&oled_cmni[0], .init = NULL},
+        .cmni = {.num = SIZE_OLEDCMNI, .confi = (DEVCMNI_TypeDef *)&oled_cmni[1], .init = NULL},
     }};
-    
+
 //    OLEDIO配置回调函数
 void DEVIO_InitCallBack(void) {
     //可复用于I2C和SPI通信的OLED引脚定义(*为必须接IO由芯片控制): SCL_SCK*,SDA_SDI_OWRE*,CS,DC(*SPI),RST
@@ -319,7 +310,5 @@ void OLED_Confi(void) {
     // DEV_doAction(&oleds, OLED_On);
     // DEV_closeActStream();
     if(DEV_setActStream(&oleds, 0) == 1) { DEV_Error(1); }
-    OLED_DevInit(0);
-    if(DEV_setActStream(&oleds, 1) == 1) { DEV_Error(1); }
     OLED_DevInit(0);
 }

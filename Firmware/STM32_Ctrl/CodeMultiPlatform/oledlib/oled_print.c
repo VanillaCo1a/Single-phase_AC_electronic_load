@@ -16,37 +16,26 @@ uint32_t oled_pow(uint8_t m,uint8_t n) {
 uint8_t pgm_read_byte(const uint8_t *addr) {
     return *addr;
 }
-//显示一个字符
-//关于字体尺寸及使用请看SetFontSize()的注释
-//当size=0时, y为第几行,x为第几列
-void OLED_Char(int32_t y, int32_t x, uint8_t c) {
-    int32_t i, j;
-    uint8_t draw_background,bg,a,b,size,color;
-    
-    size = GetFontSize();        //字体尺寸
-    color = getLineColor();    //字体颜色 1白0黑
-    bg = GetTextBkMode();        //写字的时候字的背景的颜色 1白0黑
-    draw_background = bg != color;    //这两个颜色要不一样字才看得到
-    
-    if(!size) {        //默认字符大小
-        if((y>6) || (x>SCREEN_COLUMN-8)) {
-            return;
-        }
-        c = c - ' ';            //得到偏移后的位置
+
+static void printChar(uint8_t y, uint8_t x, char ch) {
+    //关于字体尺寸及使用请看SetFontSize()的注释
+    //当size=0时, y为第几行,x为第几列
+    uint8_t i, j, a, b;
+    uint8_t draw_background, bg, color, size;
+    size = GetFontSize();               //字体尺寸
+    color = getLineColor();             //字体颜色 1白0黑
+    bg = GetTextBkMode();               //写字的时候字的背景的颜色 1白0黑
+    draw_background = bg != color;      //这两个颜色要不一样字才看得到
+
+    if(!size) {                         //默认字符大小
+        ch = ch - ' ';                  //得到偏移后的位置
         for(i=0; i<8; i++) {
-            writeByteBuffer(y,x+i,Font_8x16[c*16+i]);
+            writeByteBuffer(y/8,x+i,Font_8x16[ch*16+i]);
         }
         for(i=0; i<8; i++) {
-            writeByteBuffer(y+1,x+i,Font_8x16[c*16+i+8]);
+            writeByteBuffer(y/8+1,x+i,Font_8x16[ch*16+i+8]);
         }
-    }else {                //使用原作粗体字符    
-        //判断一个字符的上下左右是否超出边界范围
-        if((y >= SCREEN_COLUMN) ||                    // Clip right
-            (x >= SCREEN_ROW) ||                    // Clip bottom
-            ((y + 5 * size - 1) < 0) ||           // Clip left
-            ((x + 8 * size - 1) < 0)) {            // Clip top
-            return;
-        }
+    }else {                //使用原作粗体字符
         for(i=0; i<6; i++) {
             int32_t line;
             //一个字符在Font_5x7中由一行6个char表示
@@ -54,17 +43,16 @@ void OLED_Char(int32_t y, int32_t x, uint8_t c) {
             if(i == 5) {
                 line = 0x0;
             }else {
-                line = pgm_read_byte(Font_5x7+(c*5)+i);
+                line = pgm_read_byte(&Font_5x7[ch*5+i]);
             }
             for(j=0; j<8; j++) {
                 uint8_t draw_color = (line & 0x1) ? color : bg;//目前需要填充的颜色是0 就是背景色 1就是字体色
-
                 //不同号大小的字体只是最基础字体的放大倍数 这点要注意
                 //比如基础字是1个像素 放大后就是4个像素 再就是9个像素 达到马赛克的放大效果
                 if(draw_color || draw_background) {
                     for(a=0; a<size; a++) {
                         for(b=0; b<size; b++) {
-                            setPointBuffer(y+(i*size)+a, x+(j*size)+b, draw_color);
+                            setPointBuffer(x+(i*size)+a, y+(j*size)+b, draw_color);
                         }
                     }
                     line >>= 1;
@@ -73,113 +61,170 @@ void OLED_Char(int32_t y, int32_t x, uint8_t c) {
         }
     }
 }
-//显示字符串 就是显示多次显示字符
-void OLED_String(int32_t y, int32_t x, char *str) {
-    uint8_t j =  0, tempy = y, tempx = x;
-    uint8_t size = GetFontSize();
-    
-    if(!size) {            //默认字体
-        while (str[j]!='\0') {
-            OLED_Char(y,x,str[j]);
-            x += 8;
-            if(x > 120) {
-                x = 0;
-                y += 2;
-            }
-            j++;
+static void printChinese(uint8_t y, uint8_t x, char str[3]) {
+    bool findcn = false;
+    uint8_t i, j;
+    for(i=0; i<sizeof(CN16CHAR)/sizeof(*CN16CHAR); i++) {
+        if((CN16CHAR[i].Index[0]==str[0]) && 
+        (CN16CHAR[i].Index[1]==str[1]) && 
+        (CN16CHAR[i].Index[2]==str[2])) {      //查询要写的字在字库中的位置
+            findcn = true;
+            break;
         }
-    }else {                    //使用原作粗体字符
-        while (str[j] != '\0') {
-            if(str[j] == '\n') {
-                tempx += 8*size;
-                tempy = y;
-                j++;
-                continue;
-            }
-            OLED_Char(tempy,tempx,str[j]);
-            tempy += size*6;
-            j++;
+    }
+    if(findcn) {
+        for(j=0; j<32; j++) {                   //写一个字
+            writeByteBuffer(y/8+(j/16),x+(j%16),CN16CHAR[i].Msk[j]);
+        }
+    } else {
+        for(j=0; j<32; j++) {                   //写一个字
+            writeByteBuffer(y/8+(j/16),x+(j%16),CN16CHAR[0].Msk[j]);
         }
     }
 }
-//显示数字 就是多次显示数字的字符
-void OLED_Num(uint8_t y, uint8_t x, uint32_t num, uint8_t len) {
-    uint8_t t, temp;
-    uint8_t enshow = 0;
-    uint8_t size = GetFontSize();
-    
-    if(!size) {
-        for(t=0; t<len; t++) {
-            temp = (num/oled_pow(10,len-t-1))%10;
-            if(enshow==0 && t<(len-1)) {
-                if(temp == 0) {
-                    OLED_Char(y,x+8*t,' ');
-                    continue;
-                }else {
-                    enshow = 1;
-                }
-            }
-            OLED_Char(y,x+8*t,temp+'0'); 
+static void OLED_PrintCharin(uint8_t *y, uint8_t *x, char *str, bool iscn) {
+    uint8_t lenx, leny, size;
+    if((size=GetFontSize()) == 0) {     //默认字体
+        lenx = 8;
+        leny = 16;
+    } else {                            //使用原作粗体字符
+        lenx = size * 6;
+        leny = size * 8;
+    }
+    if(iscn) {
+        /* 中文字符的宽总为英文字符的2倍 */
+        lenx *= 2;
+        leny = leny;
+    }
+
+    do {
+        /* Clip all around */
+        if((*y+leny>SCREEN_ROW) || (*x+lenx>SCREEN_COLUMN) || 
+            (*y<0) || (*x<0)) {                
+            break;
         }
-    }else {
-        for(t=0; t<len; t++) {
-            temp = (num/oled_pow(10,len-t-1))%10;
-            if(enshow==0 && t<(len-1)) {
-                if(temp == 0) {
-                    OLED_Char(y+(size*6)*t,x,'0');
-                    continue;
-                }else {
-                    enshow = 1;
-                }                    
-            }
-            OLED_Char(y+(size*6)*t,x,temp+'0'); 
+
+        if(iscn) {
+            printChinese(*y, *x, str);
+        } else {
+            printChar(*y, *x, *str);
+        }
+    } while(0);
+
+    /* 坐标移动 */
+    *x += lenx;
+    if(*x+lenx > SCREEN_COLUMN) {
+        *x = 0;
+        *y += leny;
+        if(*y+leny > SCREEN_ROW) {
+            *y = 0;
         }
     }
 }
-void OLED_IntNum(uint8_t y, uint8_t x, int32_t num, uint8_t len) {
-    int32_t temp;
+
+/* 显示一个字符 */
+void OLED_PrintChar(uint8_t y, uint8_t x, char c) {
+   OLED_PrintCharin(&y, &x, &c, 0);
+}
+/* 显示字符串, 就是显示多次显示字符 */
+void OLED_PrintString(uint8_t y, uint8_t x, char *str) {
+    while (*str!='\0') {
+        OLED_PrintCharin(&y, &x, str, 0);
+        str++;
+    }
+}
+/* 显示汉字 */
+void OLED_PrintChinese(uint8_t y, uint8_t x, char *cn) {       
+    while(*cn != '\0') {                    //在C语言中字符串结束以‘\0’结尾
+        OLED_PrintCharin(&y, &x, &cn[0], 1);
+        cn += 3;                            //此处打完一个字，接下来寻找第二个字
+    }
+}
+/* 显示数字, 就是多次显示数字的字符 */
+void OLED_PrintNum(uint8_t y, uint8_t x, uint32_t num, uint8_t len) {
+    bool enshow;
+    uint8_t i, numbit;
+    char ch;
+
+    enshow = true;
+    for(i=0; i<len; i++) {
+        /* 从高位到低位计算数字的每一位值 */
+        numbit = (num/oled_pow(10,len-i-1))%10;
+        if(enshow && (numbit!=0 || i>=(len-1))) {
+            enshow = false;
+        }
+        if(enshow) {
+            ch = ' ';
+        }else {
+            ch = numbit+'0';
+        }
+        OLED_PrintCharin(&y, &x, &ch, 0);
+    }
+}
+void OLED_PrintIntNum(uint8_t y, uint8_t x, int32_t num, uint8_t len) {
+    char ch;
     if(len > 0) {
         if(num > 0) {
-            OLED_Char(y, x, '+');
-            OLED_Num(y, x+8, num, len-1);
+            ch = '+';
         }else {
-            OLED_Char(y, x, '-');
-            temp = abs(num);
-            OLED_Num(y, x+8, temp, len-1);
+            ch = '-';
+            num = abs(num);
         }
+        OLED_PrintCharin(&y, &x, &ch, 0);
     }
+    OLED_PrintNum(y, x, num, len-1);
 }
-//显示汉字
-void OLED_Chinese(uint8_t y, uint8_t x, uint8_t *cn) {                      
-    uint8_t j, wordNum;
-    if((y > 7) || (x>128-16)) {
-        return;
-    }
-    
-    while(*cn != '\0') {                    //在C语言中字符串结束以‘\0’结尾
-        for(wordNum=0; wordNum<117; wordNum++)    {
-            if((CN16CHAR[wordNum].Index[0]==*cn) && (CN16CHAR[wordNum].Index[1]==*(cn+1)) && (CN16CHAR[wordNum].Index[0]==*(cn+2))) {    //查询要写的字在字库中的位置
-                for(j=0; j<32; j++) {       //写一个字
-                    if(j == 16) {           //由于16X16用到两个Y坐标，当大于等于16时，切换坐标
-                        y++;
-                    }            
-                    writeByteBuffer(y,x+(j%16),CN16CHAR[wordNum].Msk[j]);
+#define VA_BUF_SIZE 1024
+static char va_buf[VA_BUF_SIZE] = {0};
+void OLED_Printf(uint8_t y, uint8_t x, const char *str, ...) {
+    uint8_t i, j;
+    va_list args;
+    char *pstr = va_buf;
+    va_start(args, str);
+    vsnprintf(va_buf, sizeof(va_buf), (char *)str, args);
+    va_end(args);
+
+    //if(code == 0) {
+        // todo: add gbk coding print
+    //} else if(code == 1) {
+        while (*pstr != '\0') {
+            /* Count there are how many bit '1' before bit '0' */
+            j = 0;
+            for(i=0x80; i>0x00; i>>=1) {
+                if(0x00 != (*pstr&i)) {
+                    j++;
+                } else {
+                    break;
                 }
-                x += 16;
-                y--;
-                if(x > (128-16)) {
-                    y += 2;
-                    x = 0;
+            }
+            if(j == 0) {
+                /* Check is a num or a char */
+                if(*pstr >= '0' && *pstr <= '9') {
+                    OLED_PrintCharin(&y, &x, pstr, 0);
+                } else {
+                    OLED_PrintCharin(&y, &x, pstr, 0);
                 }
-                break;
+                pstr++;
+            } else if(j == 3) {
+                OLED_PrintCharin(&y, &x, pstr, 1);
+                pstr += 3;
+            } else {
+                /* Check whether there is bit '0' */
+                if(j == 8) {
+                    /* error byte, jump it */
+                    pstr++;
+                } else {
+                    /* Unknown word, just jump it */
+                    pstr += j;
+                }
             }
         }
-        cn += 2;                            //此处打完一个字，接下来寻找第二个字
-    }
+    //}
 }
+
 //画一幅画
 //起点坐标x y 图像取模数组 图像宽高w h
-void OLED_Bitmap(int32_t y, int32_t x, uint8_t w, uint8_t h, const uint8_t *bitmap) {
+void OLED_PrintBitmap(int32_t y, int32_t x, uint8_t w, uint8_t h, const uint8_t *bitmap) {
     int32_t iCol, a;
     int32_t yOffset = abs(y) % 8;
     int32_t sRow = y / 8;
@@ -344,6 +389,47 @@ static unsigned long m_pow(int32_t x,int32_t y) {
     }
     return sum;
 }
+static void OLED_SmallChar(int32_t y, int32_t x, uint8_t c) {
+    int32_t i, j;
+    uint8_t draw_background,bg,a,b,size,color;
+    
+    size = GetFontSize();        //字体尺寸
+    color = getLineColor();    //字体颜色 1白0黑
+    bg = GetTextBkMode();        //写字的时候字的背景的颜色 1白0黑
+    draw_background = bg != color;    //这两个颜色要不一样字才看得到
+    
+    //判断一个字符的上下左右是否超出边界范围
+    if((y >= SCREEN_COLUMN) ||                    // Clip right
+        (x >= SCREEN_ROW) ||                    // Clip bottom
+        ((y + 5 * size - 1) < 0) ||           // Clip left
+        ((x + 8 * size - 1) < 0)) {            // Clip top
+        return;
+    }
+    for(i=0; i<6; i++) {
+        int32_t line;
+        //一个字符在Font_5x7中由一行6个char表示
+        //line为这个字符的第某行内容
+        if(i == 5) {
+            line = 0x0;
+        }else {
+            line = pgm_read_byte(Font_5x7+(c*5)+i);
+        }
+        for(j=0; j<8; j++) {
+            uint8_t draw_color = (line & 0x1) ? color : bg;//目前需要填充的颜色是0 就是背景色 1就是字体色
+
+            //不同号大小的字体只是最基础字体的放大倍数 这点要注意
+            //比如基础字是1个像素 放大后就是4个像素 再就是9个像素 达到马赛克的放大效果
+            if(draw_color || draw_background) {
+                for(a=0; a<size; a++) {
+                    for(b=0; b<size; b++) {
+                        setPointBuffer(y+(i*size)+a, x+(j*size)+b, draw_color);
+                    }
+                }
+                line >>= 1;
+            }
+        }
+    }
+}
 //打印字符
 void m_putchar(const char c) {
     uint8_t tmp = GetFontSize();
@@ -352,13 +438,13 @@ void m_putchar(const char c) {
         _cursor_x = 0;
     }else if(c != '\r') {
         SetFontSize(1);
-        OLED_Char(_cursor_x, _cursor_y, c);
+        OLED_SmallChar(_cursor_x, _cursor_y, c);
         SetFontSize(tmp);
         _cursor_x += 6;
         if(wrap && (_cursor_x > (SCREEN_COLUMN - 6))) {
             m_putchar('\n');
         }
-    }     
+    }
 }
 //打印字符串
 void m_putstr(const char *str) {
@@ -378,14 +464,14 @@ char numtochar(int8_t num, _Bool larsma) {    //0小写, 1大写
     }
 }
 //模仿printf功能显示到oled上
-int32_t OLED_Printf(const char *str,...) {
-    va_list ap;                                //定义一个可变 参数的（字符指针） 
+int32_t OLED_PrintfDebug(const char *str, ...) {
+    va_list args;                                //定义一个可变 参数的（字符指针） 
     int32_t val,r_val;
     char count,ch;
     char *s = NULL;
     int32_t res = 0;                            //返回值
 
-    va_start(ap,str);                    //初始化ap
+    va_start(args,str);                    //初始化ap
     while('\0' != *str) {            //str为字符串,它的最后一个字符肯定是'\0'（字符串的结束符）
     
         switch(*str) {        //遇到百分号 此时要替换为参数
@@ -393,7 +479,7 @@ int32_t OLED_Printf(const char *str,...) {
             str++;
             switch(*str) {    //10进制输出
             case 'd':
-                val = va_arg(ap, int);
+                val = va_arg(args, int);
                 r_val = val;
                 count = 0;
 
@@ -411,7 +497,7 @@ int32_t OLED_Printf(const char *str,...) {
                 }
                 break;
             case 'x':                //16进制输出 
-                val = va_arg(ap, int);
+                val = va_arg(args, int);
                 r_val = val;
                 count = 0;
                 while(r_val) {
@@ -432,12 +518,12 @@ int32_t OLED_Printf(const char *str,...) {
                 }
                 break;
             case's':                //发送字符串
-                s = va_arg(ap, char *);
+                s = va_arg(args, char *);
                 m_putstr(s);            //字符串,返回值为字符指针
                 res += strlen(s);    //返回值长度增加?
                 break;
             case 'c':
-                m_putchar((char)va_arg(ap, int32_t ));    //大家猜为什么不写char，而要写int32_t 
+                m_putchar((char)va_arg(args, int32_t ));    //大家猜为什么不写char，而要写int32_t 
                 res++;
                 break;
             default :
@@ -468,6 +554,6 @@ int32_t OLED_Printf(const char *str,...) {
     if(_cursor_y+8 >= 63) {
         _cursor_y = 0;
     }
-    va_end(ap);
+    va_end(args);
     return res;
 }

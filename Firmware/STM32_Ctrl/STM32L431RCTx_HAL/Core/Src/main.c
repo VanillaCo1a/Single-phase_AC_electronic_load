@@ -27,6 +27,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "uart.h"
+#include "oledlib.h"
+#include "hlw8032.h"
 
 /* USER CODE END Includes */
 
@@ -58,6 +61,10 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern DEVS_TypeDef oleds;
+int32_t i = 0;
+uint8_t data[2000] = {0};
+volatile float fps1 = 0, fps2 = 0, fps3 = 0;
 
 /* USER CODE END 0 */
 
@@ -90,12 +97,19 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
+  MX_TIM6_Init();
+  MX_ADC1_Init();
   MX_SPI2_Init();
   MX_USART1_UART_Init();
-  MX_ADC1_Init();
-  MX_TIM6_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+  TIMER_Confi();
+  UART_Init();
+  OLED_Confi();
 
+  int8_t oled_mode = 0;
+  /* 显示while(1)循环次数 */
+  OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RCT6%8d", i);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,6 +119,76 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+    /* 获取8032数据 */
+    if(HLW8032_Ctrl()) {
+      HLW8032_Limit();
+
+      /* 串口输出 */
+      if(delayms_Timer_paral(500)) {
+        printf("V=%7.3lfV  I=%7.3lfA  P=%7.3lfW  PFC=%5.2lf%%  W=%7.3lfkWh\r\n",
+              pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0, 
+              pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0, 
+              pfcres.electricQuantity / 1000.0);
+      }
+      
+      /*  更新显存 */
+      if(delayus_Timer_paral(100)) {
+        OLED_clearBuffer();
+        switch (oled_mode) {
+        case 0:
+          SetFontSize(2);
+          OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "V=%7.3lfV", pfcres.voltage / 1000.0);
+          OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "I=%7.3lfA", pfcres.currentIntensity / 1000.0);
+          OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW", pfcres.power / 1000.0);
+          OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "PFC=%5.2lf%%", pfcres.powerFactorer / 1000.0);
+          SetFontSize(0);
+          break;
+        case 1:
+          /* 显示while(1)循环次数 */
+          OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", i);
+          SetFontSize(1);
+          OLED_Printf(0 + 3 * 8, 0 + 0 * 8, "V=%7.3lfV I=%7.3lfA", 
+                      pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0);
+          OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW PFC=%5.2lf%%", 
+                      pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0);
+          OLED_Printf(0 + 5 * 8, 0 + 0 * 8, "W=%7.3lfkWh", 
+                      pfcres.electricQuantity / 1000.0);
+          SetFontSize(0);
+          break;
+        case 2:
+          /* 显示while(1)循环次数 */
+          OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", i);
+          SetFontSize(0);
+          OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "V=%4.1lfV  I=%4.1lfA", 
+                      pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0);
+          OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%4.1lfW  PFC=%2.0lf%%", 
+                      pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0);
+          OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "W=%4.1lfkWh", 
+                      pfcres.electricQuantity / 1000.0);
+          break;
+        
+        default:
+          break;
+        }
+      }
+    }
+    i = i==100000 ? 0 : i+1;
+
+    /* oled显示 */
+    DEV_setActStream(&oleds, 0);
+    if(DEV_getActState() == idle) {
+      TIMER_tick();
+      // OLED_Error();
+      OLED_updateScreen();
+      fps2 = TIMER_query();
+      DEV_setActState(500);
+    }
+
+    /* 串口回显 */
+    if(UART1_ScanString((char *)data, sizeof(data))) {
+        UART1_PrintString((char *)data);
+    }
   }
   /* USER CODE END 3 */
 }

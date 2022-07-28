@@ -12,5 +12,17 @@
 			"name": "STM32L431RCTx_HAL_GCC",
 			"path": "STM32L431RCTx_HAL\\Makefile"
 		},
-	]
+	],
+	"settings": {
+		"files.associations": {
+			"uart.h": "c",
+			"oled_font&bmp.h": "c",
+			"gpio.h": "c",
+			"main.h": "c",
+			"oledlib.h": "c",
+			"hlw8032.h": "c",
+			"usart.h": "c",
+			"device.h": "c"
+		}
+	}
 }

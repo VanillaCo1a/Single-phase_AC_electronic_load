@@ -1,7 +1,9 @@
 ﻿#include "uart.h"
 #include "usart.h"
+#include "timer.h"
 
 static UART_ModuleHandleTypeDef msuart[UART_NUM] = {
+    {.receive = {.state = 0}, .transmit = {.state = 1}, .usedma = 1},
     {.receive = {.state = 0}, .transmit = {.state = 1}, .usedma = 0},
 };
 static DEVCMNI_TypeDef uart_cmni[UART_NUM] = {
@@ -14,10 +16,21 @@ static DEVCMNI_TypeDef uart_cmni[UART_NUM] = {
 #endif
 #endif
     },
+    {.protocol = USART, .ware = HARDWARE, .modular = &msuart[1],
+#if defined(STM32)
+#if defined(STM32HAL)
+     .bus = &huart3
+#elif defined(STM32FWLIB)
+     .bus = USART3
+#endif
+#endif
+    },
 };
 DEVS_TypeDef uarts = {.type = UART};
 DEV_TypeDef uart[UART_NUM] = {
-    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[0], .init = NULL}}};
+    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[0], .init = NULL}},
+    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[1], .init = NULL}},
+};
 
 /* 串口初始化函数 */
 void UART_Init(void) {
@@ -29,6 +42,8 @@ void UART_Init(void) {
 #endif
 #endif
     printf("UART1初始化完毕\r\n");
+    delayus_timer(100);
+    printf("UART3初始化完毕\r\n");
 }
 
 
@@ -56,7 +71,8 @@ static inline void UART_PrintString(int8_t num, const char *str) {
     while(!DEVCMNI_Write((uint8_t *)str, strlen(str), 0xFF)) continue;
 }
 
-char va_buf[VA_BUF_SIZE] = {0};
+#define VA_BUF_SIZE 1024
+static char va_buf[VA_BUF_SIZE] = {0};
 bool UART1_ScanArray(uint8_t arr[], size_t size, size_t *length) {
     return UART_ScanArray(0, arr, size, length);
 }
@@ -69,13 +85,16 @@ void UART1_PrintArray(const uint8_t arr[], size_t size) {
 void UART1_PrintString(const char *str) {
     UART_PrintString(0, str);
 }
-void UART1_Printf(char *fmt, ...) {
+void UART1_Printf(char *str, ...) {
     va_list args;
-    va_start(args, fmt);
-    vsnprintf(va_buf, sizeof(va_buf), (char *)fmt, args);
+    va_start(args, str);
+    vsnprintf(va_buf, sizeof(va_buf), (char *)str, args);
     va_end(args);
 
     UART_PrintString(0, va_buf);
+}
+bool UART3_ScanArray(uint8_t arr[], size_t size, size_t *length) {
+    return UART_ScanArray(1, arr, size, length);
 }
 
 /* printf重定向 */
