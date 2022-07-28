@@ -122,12 +122,6 @@
                 "path": "../../CodeMultiPlatform/oledlib/oled_buffer.c"
               },
               {
-                "path": "../../CodeMultiPlatform/oledlib/oled_config.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_draw.c"
-              },
-              {
                 "path": "../../CodeMultiPlatform/oledlib/oled_driver.c"
               },
               {

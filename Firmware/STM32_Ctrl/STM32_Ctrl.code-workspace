@@ -22,7 +22,12 @@
 			"oledlib.h": "c",
 			"hlw8032.h": "c",
 			"usart.h": "c",
-			"device.h": "c"
+			"device.h": "c",
+			"oled_draw.h": "c",
+			"oled_config.h": "c",
+			"oled_basic.h": "c",
+			"oled_driver.h": "c",
+			"oled_print.h": "c"
 		}
 	}
 }

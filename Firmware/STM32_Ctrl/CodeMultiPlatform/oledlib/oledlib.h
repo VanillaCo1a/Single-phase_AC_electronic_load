@@ -55,8 +55,6 @@ typedef struct ROATE {
 #include "oled_driver.h"
 #include "oled_buffer.h"
 #include "oled_basic.h"
-#include "oled_draw.h"
 #include "oled_print.h"
 #include "oled_font&bmp.h"
-#include "oled_config.h"
 #endif

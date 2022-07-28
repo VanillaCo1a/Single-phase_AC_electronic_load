@@ -1185,16 +1185,6 @@
               <FilePath>..\..\CodeMultiPlatform\oledlib\oled_buffer.c</FilePath>
             </File>
             <File>
-              <FileName>oled_config.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\CodeMultiPlatform\oledlib\oled_config.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled_draw.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\CodeMultiPlatform\oledlib\oled_draw.c</FilePath>
-            </File>
-            <File>
               <FileName>oled_driver.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\CodeMultiPlatform\oledlib\oled_driver.c</FilePath>
