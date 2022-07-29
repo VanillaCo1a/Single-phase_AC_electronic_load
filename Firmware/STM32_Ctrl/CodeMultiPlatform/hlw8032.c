@@ -81,6 +81,9 @@ static bool ctrl(uint8_t *data, size_t size, uint8_t *start) {
     return false;
 }
 
+/* 定点数的小数长度 */
+#define NUMBIT 1000.0
+
 static void count(uint8_t *data) {
     unsigned long Voltage_Parameter_REG = 0;    //电压参数寄存器
     unsigned long Voltage_REG = 0;              //电压寄存器
@@ -105,15 +108,15 @@ static void count(uint8_t *data) {
     Energy_CNT = Energy_count * 65536 + data[21] * 256 + data[22];
 
     /* 计算电压 */
-    pfcres.voltage = 1000 * Voltage_Parameter_REG * 3.006 / Voltage_REG;
+    pfcres.voltage = NUMBIT * Voltage_Parameter_REG * 3.006 / Voltage_REG;
     /* 计算电流 */
-    pfcres.currentIntensity = 1000 * Current_Parameter_REG / Current_REG;
+    pfcres.currentIntensity = NUMBIT * Current_Parameter_REG / Current_REG;
     /* 计算功率 */
-    pfcres.power = 1000 * Power_Parameter_REG * 3.006 / Power_REG;
+    pfcres.power = NUMBIT * Power_Parameter_REG * 3.006 / Power_REG;
     /* 计算功率因数 */
-    pfcres.powerFactorer = 1000 * 1000 * pfcres.power / (pfcres.voltage * pfcres.currentIntensity);
+    pfcres.powerFactorer = NUMBIT * (pfcres.power / NUMBIT) / ((pfcres.voltage / NUMBIT) * (pfcres.currentIntensity / NUMBIT));
     /* 计算电能 */
-    pfcres.electricQuantity = 1000 * Energy_CNT / 1000000000 * Power_Parameter_REG * 3.006 * 1 / 3600;
+    pfcres.electricQuantity = NUMBIT * Energy_CNT / 1000000000 * Power_Parameter_REG * 3.006 * 1 / 3600;
 
     /* 若电压小于2V, 则视为假值并归0 */
     if(pfcres.voltage / 1000 < 2) {
