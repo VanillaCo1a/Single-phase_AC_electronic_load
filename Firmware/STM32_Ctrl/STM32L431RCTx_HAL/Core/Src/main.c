@@ -126,7 +126,7 @@ int main(void)
 
       /* 串口输出 */
       if(delayms_Timer_paral(500)) {
-        printf("V=%7.3lfV  I=%7.3lfA  P=%7.3lfW  PFC=%5.2lf%%  W=%7.3lfkWh\r\n",
+        printf("V=%7.3lfV  I=%7.3lfA  P=%7.3lfW  PFC=%6.4lf  W=%7.3lfkWh\r\n",
               pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0, 
               pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0, 
               pfcres.electricQuantity / 1000.0);

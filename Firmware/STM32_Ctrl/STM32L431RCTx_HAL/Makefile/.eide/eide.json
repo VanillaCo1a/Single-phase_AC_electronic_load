@@ -11,9 +11,7 @@
           "name": "default",
           "incList": [
             "./.eide/deps",
-            "./../../CodeMultiPlatform",
-            "./../../CodeMultiPlatform/device",
-            "./../../CodeMultiPlatform/oledlib"
+            "./../Project"
           ],
           "libList": [],
           "sourceDirList": [],
@@ -62,7 +60,8 @@
   "srcDirs": [
     "./.eide/deps",
     "./../Core",
-    "./../Drivers"
+    "./../Drivers",
+    "./../../CodeMultiPlatform"
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
@@ -87,53 +86,22 @@
         "name": "Project",
         "files": [
           {
-            "path": "../../CodeMultiPlatform/hlw8032.c"
+            "path": "../Project/mydevice.c"
           },
           {
-            "path": "../../CodeMultiPlatform/uart.c"
+            "path": "../Project/myhlw8032.c"
+          },
+          {
+            "path": "../Project/myoled.c"
+          },
+          {
+            "path": "../Project/mytask.c"
+          },
+          {
+            "path": "../Project/myuart.c"
           }
         ],
-        "folders": [
-          {
-            "name": "device",
-            "files": [
-              {
-                "path": "../../CodeMultiPlatform/device/device.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/device/protocol_hardware.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/device/protocol_software.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/device/timer.c"
-              }
-            ],
-            "folders": []
-          },
-          {
-            "name": "oledlib",
-            "files": [
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_basic.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_buffer.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_driver.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_font&bmp.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_print.c"
-              }
-            ],
-            "folders": []
-          }
-        ]
+        "folders": []
       }
     ]
   },
