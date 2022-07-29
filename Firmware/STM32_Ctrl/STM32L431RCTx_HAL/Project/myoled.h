@@ -4,9 +4,8 @@
 #include "oledlib.h"
 
 #define OLED_NUM 1
-#define VA_BUF_SIZE 256
 
-/* OLED进程 */
-void OLED_Task(void);
+extern DEVS_TypeDef myoleds;
+extern DEV_TypeDef myoled[OLED_NUM];
 
 #endif // !__MYOLED_H

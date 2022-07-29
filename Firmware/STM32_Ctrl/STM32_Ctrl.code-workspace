@@ -35,7 +35,11 @@
 			"mydevice.h": "c",
 			"myoled.h": "c",
 			"timer.h": "c",
-			"protocol_software.h": "c"
+			"protocol_software.h": "c",
+			"stm32l4xx_hal.h": "c",
+			"inverter.h": "c",
+			"mytask.h": "c",
+			"myhlw8032.h": "c"
 		}
 	}
 }

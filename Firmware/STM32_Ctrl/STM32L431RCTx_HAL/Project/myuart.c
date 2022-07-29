@@ -1,5 +1,4 @@
 ﻿#include "myuart.h"
-#include "uart.h"
 
 /* 设备参数配置 */
 static UART_ModuleHandleTypeDef msuart[UART_NUM] = {
@@ -24,16 +23,10 @@ static DEVCMNI_TypeDef uart_cmni[UART_NUM] = {
 #endif
 #endif
     }};
-static DEVS_TypeDef myuarts = {.type = UART};
-static DEV_TypeDef myuart[UART_NUM] = {
+DEVS_TypeDef myuarts = {.type = UART};
+DEV_TypeDef myuart[UART_NUM] = {
     {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[0], .init = NULL}},
     {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[1], .init = NULL}}};
-
-/* 初始化sprintf缓冲区 */
-static char my_va_buf[VA_BUF_SIZE];
-
-/* 初始化串口缓冲区 */
-static uint8_t uart_buf[UART_BUF_SIZE];
 
 /* 方法重写 */
 bool UART1_ScanArray(uint8_t arr[], size_t size, size_t *length) {
@@ -57,9 +50,6 @@ void UART1_Printf(char *str, ...) {
 bool UART3_ScanArray(uint8_t arr[], size_t size, size_t *length) {
     return UART_ScanArray(1, arr, size, length);
 }
-bool HLW8032_Read(uint8_t arr[], size_t size, size_t *length) {
-    return UART3_ScanArray(arr, size, length);
-}
 
 /* printf重定向 */
 int fputc(int ch, FILE *f) {
@@ -80,28 +70,4 @@ int _write(int fd, char *pBuffer, int size) {
     while(!(res = DEVCMNI_Write((uint8_t *)pBuffer, size, 0xFF))) continue;
     DEV_setActStream(devs, dev);
     return size;
-}
-
-
-/* 串口进程 */
-static bool firstRun = true;
-void UART_Task(void) {
-    if(firstRun) {
-        UART_Init(&myuarts, myuart, sizeof(myuart) / sizeof(*myuart), my_va_buf, sizeof(my_va_buf));
-        printf("UART1初始化完毕\r\n");
-        delayms_timer(5);
-        printf("UART3初始化完毕\r\n");
-        firstRun = false;
-    }
-    
-    DEV_setActStream(&myuarts, 0);
-    while(DEV_getActState() == idle) {
-        /* 串口回显 */
-        if(UART1_ScanString((char *)uart_buf, sizeof(uart_buf))) {
-            UART1_PrintString((char *)uart_buf);
-        }
-
-        /* 置忙500ms */
-        DEV_setActState(25000);
-    }
 }

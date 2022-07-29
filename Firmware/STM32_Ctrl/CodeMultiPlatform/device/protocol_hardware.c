@@ -230,12 +230,12 @@ static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart) {
 }
 
 /* 获取串口句柄对应通信句柄 */
-extern DEVS_TypeDef *uarts;
-extern DEV_TypeDef *uart;
+extern DEVS_TypeDef *myuarts;
+extern DEV_TypeDef myuart[];
 static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus) {
-    for(size_t i = 0; i < uarts->size; i++) {
-        if(((UART_ModuleHandleTypeDef *)uart[i].cmni.confi->modular)->bus == bus) {
-            return uart[i].cmni.confi->modular;
+    for(size_t i = 0; i < myuarts->size; i++) {
+        if(((UART_ModuleHandleTypeDef *)myuart[i].cmni.confi->modular)->bus == bus) {
+            return myuart[i].cmni.confi->modular;
         }
     }
     return NULL;

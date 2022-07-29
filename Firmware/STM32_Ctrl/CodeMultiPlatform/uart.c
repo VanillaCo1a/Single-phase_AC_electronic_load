@@ -17,21 +17,16 @@ static DEVS_TypeDef myuarts = {.type = UART};
 static DEV_TypeDef myuart[] = {{.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[0], .init = NULL}}};    ***/
 
 
-DEVS_TypeDef *uarts = NULL;
-DEV_TypeDef *uart = NULL;
-poolsize uartSize = 0;
-
+static DEVS_TypeDef *uarts = NULL;
 static char *va_buf = NULL;
-static size_t bufSize = 0;
+static size_t va_size = 0;
 
 /* 串口构造函数 */
 void UART_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize uSize, char *buf, size_t bSize) {
     uarts = devs;
-    uart = dev;
-    uartSize = uSize;
     va_buf = buf;
-    bufSize = bSize;
-    DEV_Init(uarts, uart, uartSize);
+    va_size = bSize;
+    DEV_Init(devs, dev, uSize);
 #if defined(STM32)
 #if defined(STM32HAL)
 #elif defined(STM32FWLIB)
@@ -68,7 +63,7 @@ void UART_PrintString(int8_t num, const char *str) {
 void UART_Printf(int8_t num, char *str, ...) {
     va_list args;
     va_start(args, str);
-    vsnprintf(va_buf, bufSize, (char *)str, args);
+    vsnprintf(va_buf, va_size, (char *)str, args);
     va_end(args);
     DEV_setActStream(uarts, num);
     UART_PrintString(0, va_buf);

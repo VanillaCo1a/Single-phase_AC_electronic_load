@@ -1,58 +1,60 @@
 #include "hlw8032.h"
-#include "myuart.h"
-#include "oledlib.h"
 
 /* 最坏情况: 先读23位无效数据, 再读24位有效数据 */
-#define _SIZE_MAX 50
-static uint8_t buffer[_SIZE_MAX];
+#define lenof(arr)       (sizeof(arr) / sizeof(*arr))
+#define HLW8032_BUF_SIZE 50
+static uint8_t buffer[HLW8032_BUF_SIZE];
 
-/* 结果数组中保存的是三位小数的定点数 */
+/* 结果数组中保存的是四位小数的定点数 */
 HLW8032_ResTypedef pfcres = {0};
 
-static bool ctrl(uint8_t *data, size_t size, uint8_t *start);
-static void count(uint8_t *data);
+bool HLW8032_Read(uint8_t *data, size_t size);
+static bool HLW8032_Check(uint8_t *data, size_t size, uint8_t *start);
+static void HLW8032_Count(uint8_t *data);
+static void HLW8032_Limit(uint8_t *data);
 
 bool HLW8032_Ctrl(void) {
     bool res = false;
-    size_t size;
     uint8_t start = 0;
-    if(HLW8032_Read(buffer, sizeof(buffer), &size)) {
-        if((res = ctrl(buffer, _SIZE_MAX, &start))) {
-            count(&buffer[start]);
-        }
-    }
+    do {
+        res = HLW8032_Read(buffer, lenof(buffer));
+        if(!res) { break; }
+        res = HLW8032_Check(buffer, lenof(buffer), &start);
+        if(!res) { break; }
+        HLW8032_Count(&buffer[start]);
+        HLW8032_Limit(&buffer[start]);
+    } while(0);
     return res;
-}
-
-/* 由于有时存在脏值，将结果限幅为3位整数3位小数的定点数 */
-void HLW8032_Limit(void) {
-    uint32_t *p = (uint32_t *)&pfcres;
-    for(size_t i = 0; i < sizeof(pfcres) / sizeof(*p); i++) {
-        p[i] %= 1000000;
-    }
 }
 
 HLW8032_ResTypedef *HLW8032_GetResult(void) {
     return &pfcres;
 }
 
-static bool ctrl(uint8_t *data, size_t size, uint8_t *start) {
+__weak bool HLW8032_Read(uint8_t *data, size_t size) {
+    /* user should rewrite this function to read data for hlw8032 */
+    printf("user should rewrite this function: HLW8032_Read to read data for hlw8032\r\n");
+    return false;
+}
+
+/* 校验串口接收的数据 */
+static bool HLW8032_Check(uint8_t *data, size_t size, uint8_t *start) {
     size_t i = 0, s = 0;
     int8_t state = 0;
     uint8_t sumCheck = 0;
-    for(i = 0; i < size; i++) {
+    for(i = 0; i < lenof(buffer); i++) {
         switch(state) {
         case 0:
-            if(data[i] == 0x55 || data[i] == 0xf2) {
+            if(buffer[i] == 0x55 || buffer[i] == 0xf2) {
                 state = 1;
             }
             break;
         case 1:
-            if(data[i] == 0x5A) {
+            if(buffer[i] == 0x5A) {
                 s = i - 1;
                 state = 2;
             } else {
-                if(data[i] == 0x55 || data[i] == 0xf2) {
+                if(buffer[i] == 0x55 || buffer[i] == 0xf2) {
                     state = 1;
                 } else {
                     state = 0;
@@ -61,9 +63,9 @@ static bool ctrl(uint8_t *data, size_t size, uint8_t *start) {
             break;
         case 2:
             if(i < s + 23) {
-                sumCheck += data[i];
+                sumCheck += buffer[i];
             } else {
-                if(sumCheck == data[i]) {
+                if(sumCheck == buffer[i]) {
                     *start = s;
                     return true;
                 } else {
@@ -76,15 +78,11 @@ static bool ctrl(uint8_t *data, size_t size, uint8_t *start) {
             break;
         }
     }
-
     *start = 0;
     return false;
 }
 
-/* 定点数的小数长度 */
-#define NUMBIT 1000.0
-
-static void count(uint8_t *data) {
+static void HLW8032_Count(uint8_t *data) {
     unsigned long Voltage_Parameter_REG = 0;    //电压参数寄存器
     unsigned long Voltage_REG = 0;              //电压寄存器
     unsigned long Current_Parameter_REG = 0;    //电压参数寄存器
@@ -108,77 +106,37 @@ static void count(uint8_t *data) {
     Energy_CNT = Energy_count * 65536 + data[21] * 256 + data[22];
 
     /* 计算电压 */
-    pfcres.voltage = NUMBIT * Voltage_Parameter_REG * 3.006 / Voltage_REG;
+    pfcres.voltage = DEC_BIT * Voltage_Parameter_REG * 3.006 / Voltage_REG;
     /* 计算电流 */
-    pfcres.currentIntensity = NUMBIT * Current_Parameter_REG / Current_REG;
+    pfcres.currentIntensity = DEC_BIT * Current_Parameter_REG / Current_REG;
     /* 计算功率 */
-    pfcres.power = NUMBIT * Power_Parameter_REG * 3.006 / Power_REG;
+    pfcres.power = DEC_BIT * Power_Parameter_REG * 3.006 / Power_REG;
     /* 计算功率因数 */
-    pfcres.powerFactorer = NUMBIT * (pfcres.power / NUMBIT) / ((pfcres.voltage / NUMBIT) * (pfcres.currentIntensity / NUMBIT));
+    pfcres.powerFactorer = DEC_BIT * (pfcres.power / DEC_BIT) / ((pfcres.voltage / DEC_BIT) * (pfcres.currentIntensity / DEC_BIT));
     /* 计算电能 */
-    pfcres.electricQuantity = NUMBIT * Energy_CNT / 1000000000 * Power_Parameter_REG * 3.006 * 1 / 3600;
+    pfcres.electricQuantity = DEC_BIT * Energy_CNT / 1000000000 * Power_Parameter_REG * 3.006 * 1 / 3600;
+}
 
-    /* 若电压小于2V, 则视为假值并归0 */
-    if(pfcres.voltage / 1000 < 2) {
-        pfcres.voltage = 0;
+static void HLW8032_Limit(uint8_t *data) {
+    /* 若电压小于2V, 则视为假值, 不计算功率因数 */
+    if(pfcres.voltage < 2 * DEC_BIT && pfcres.currentIntensity < 0.1 * DEC_BIT) {
+        // pfcres.voltage = 0;
+        // pfcres.currentIntensity;
+        pfcres.powerFactorer = 0;
     }
     /* 若功率溢出且功率未更新，归0 */
     if((data[0] == 0xf2) && (((data[20] >> 4) & 1) == 0)) {
         pfcres.power = 0;
         pfcres.powerFactorer = 0;
     }
-}
+    /* 将功率因数限幅在1以内 */
+    if(pfcres.powerFactorer >= 1 * DEC_BIT) {
+        pfcres.powerFactorer = 1 * DEC_BIT - 1;
+    }
 
-void HLW8032_Task(void) {
-    int8_t oled_mode = 0;
-
-    /* 获取8032数据 */
-    if(HLW8032_Ctrl()) {
-        HLW8032_Limit();
-
-        /* 串口输出 */
-        if(delayms_Timer_paral(500)) {
-            printf("V=%7.3lfV  I=%7.3lfA  P=%7.3lfW  PFC=%5.2lf%%  W=%7.3lfkWh\r\n",
-                   pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0,
-                   pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0,
-                   pfcres.electricQuantity / 1000.0);
-        }
-
-        /*  更新显存 */
-        if(delayus_Timer_paral(100)) {
-            OLED_clearBuffer();
-            switch(oled_mode) {
-            case 0:
-                SetFontSize(2);
-                OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "V=%7.3lfV", pfcres.voltage / 1000.0);
-                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "I=%7.3lfA", pfcres.currentIntensity / 1000.0);
-                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW", pfcres.power / 1000.0);
-                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "PFC=%5.2lf%%", pfcres.powerFactorer / 1000.0);
-                SetFontSize(0);
-                break;
-            case 1:
-                SetFontSize(1);
-                OLED_Printf(0 + 3 * 8, 0 + 0 * 8, "V=%7.3lfV I=%7.3lfA",
-                            pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0);
-                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW PFC=%5.2lf%%",
-                            pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0);
-                OLED_Printf(0 + 5 * 8, 0 + 0 * 8, "W=%7.3lfkWh",
-                            pfcres.electricQuantity / 1000.0);
-                SetFontSize(0);
-                break;
-            case 2:
-                SetFontSize(0);
-                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "V=%4.1lfV  I=%4.1lfA",
-                            pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0);
-                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%4.1lfW  PFC=%2.0lf%%",
-                            pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0);
-                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "W=%4.1lfkWh",
-                            pfcres.electricQuantity / 1000.0);
-                break;
-
-            default:
-                break;
-            }
-        }
+    /* 由于有时存在脏值，将结果限幅为三位整数四位小数的定点数 */
+    uint32_t *p = (uint32_t *)&pfcres;
+    for(size_t i = 0; i < sizeof(pfcres) / sizeof(*p); i++) {
+        p[i] %= (uint32_t)(INT_BIT * DEC_BIT);
     }
 }

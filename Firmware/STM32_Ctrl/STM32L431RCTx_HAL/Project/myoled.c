@@ -1,5 +1,5 @@
 #include "myoled.h"
-#include "oled_driver.h"
+#include "oledlib.h"
 
 /***  OLED配置结构体初始化  ***/
 void DEVIO_InitCallBack(void);
@@ -31,33 +31,8 @@ static OLED_CMNITypeDef oled_cmni[] = {
 /* OLED设备结构体 */
 #define SIZE_OLEDIO   sizeof(OLED_IOTypeDef) / sizeof(DEVIO_TypeDef)
 #define SIZE_OLEDCMNI sizeof(OLED_CMNITypeDef) / sizeof(DEVCMNI_TypeDef)
-static DEVS_TypeDef myoleds = {.type = OLED};
-static DEV_TypeDef myoled[OLED_NUM] = {
+DEVS_TypeDef myoleds = {.type = OLED};
+DEV_TypeDef myoled[OLED_NUM] = {
     {.parameter = &oled_parameter[0],
      .io = {.num = SIZE_OLEDIO, .confi = (DEVIO_TypeDef *)&oled_io[0], .init = DEVIO_InitCallBack},
      .cmni = {.num = SIZE_OLEDCMNI, .confi = (DEVCMNI_TypeDef *)&oled_cmni[1], .init = NULL}}};
-
-/* 初始化sprintf缓冲区 */
-static char my_va_buf[VA_BUF_SIZE];
-
-
-/* OLED进程 */
-static bool firstRun = true;
-float fps = 0;
-void OLED_Task(void) {
-    if(firstRun) {
-        OLED_Init(&myoleds, myoled, sizeof(myoled) / sizeof(*myoled), my_va_buf, sizeof(my_va_buf));
-        firstRun = false;
-    }
-    
-    DEV_setActStream(&myoleds, 0);
-    while(DEV_getActState() == idle) {
-        /* oled显示 */
-        TIMER_tick();
-        // OLED_Error();
-        OLED_updateScreen();
-        fps = TIMER_query();
-        /* 置忙10ms */
-        DEV_setActState(500);
-    }
-}

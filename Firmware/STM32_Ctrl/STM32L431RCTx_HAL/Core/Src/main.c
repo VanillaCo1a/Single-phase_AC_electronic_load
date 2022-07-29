@@ -28,9 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "myuart.h"
-#include "myoled.h"
-#include "mydevice.h"
+#include "mytask.h"
 #include "hlw8032.h"
 #include "inverter.h"
 
@@ -64,8 +62,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int32_t i = 0;
-volatile float fps1 = 0, fps3 = 0;
 
 /* USER CODE END 0 */
 
@@ -107,6 +103,10 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
+  INVERTER_Init();
+  extern uint16_t inverterNum;
+  int32_t i = 0;
+  volatile float fps1 = 0, fps3 = 0;
 
   /* USER CODE END 2 */
 
@@ -117,14 +117,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    TIMER_Task();
-    UART_Task();
-    OLED_Task();
-    HLW8032_Task();
+    DEBUG_SYSTEM_Task();
+    HLW8032_OLED_Task(inverterNum);
 
     i = i==100000 ? 0 : i+1;
-    /* 显示while(1)循环次数 */
-    OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", i);
   }
   /* USER CODE END 3 */
 }
