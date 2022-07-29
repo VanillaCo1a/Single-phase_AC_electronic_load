@@ -20,6 +20,7 @@
             "./../../CodeMultiPlatform",
             "./../../CodeMultiPlatform/device",
             "./../../CodeMultiPlatform/oledlib",
+            "./../Project",
             "./RTE/_template"
           ],
           "defineList": [
@@ -38,51 +39,11 @@
     "storageLayout": {
       "RAM": [
         {
-          "tag": "RAM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "noInit": false
-        },
-        {
-          "tag": "RAM",
-          "id": 2,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "noInit": false
-        },
-        {
-          "tag": "RAM",
-          "id": 3,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "noInit": false
-        },
-        {
           "tag": "IRAM",
           "id": 1,
           "mem": {
             "startAddr": "0x20000000",
-            "size": "0xc000"
-          },
-          "isChecked": true,
-          "noInit": false
-        },
-        {
-          "tag": "IRAM",
-          "id": 2,
-          "mem": {
-            "startAddr": "0x10000000",
-            "size": "0x4000"
+            "size": "0x5000"
           },
           "isChecked": true,
           "noInit": false
@@ -90,54 +51,14 @@
       ],
       "ROM": [
         {
-          "tag": "ROM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "isStartup": false
-        },
-        {
-          "tag": "ROM",
-          "id": 2,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "isStartup": false
-        },
-        {
-          "tag": "ROM",
-          "id": 3,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "isStartup": false
-        },
-        {
           "tag": "IROM",
           "id": 1,
           "mem": {
-            "startAddr": "0x8000000",
-            "size": "0x40000"
+            "startAddr": "0x08000000",
+            "size": "0x10000"
           },
           "isChecked": true,
           "isStartup": true
-        },
-        {
-          "tag": "IROM",
-          "id": 2,
-          "mem": {
-            "startAddr": "0x0",
-            "size": "0x0"
-          },
-          "isChecked": false,
-          "isStartup": false
         }
       ]
     },
@@ -145,7 +66,8 @@
   },
   "uploader": "OpenOCD",
   "srcDirs": [
-    "./.eide/deps"
+    "./.eide/deps",
+    "./../../CodeMultiPlatform"
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
@@ -177,31 +99,34 @@
                 "name": "Core",
                 "files": [
                   {
-                    "path": "../Core/Src/main.c"
-                  },
-                  {
-                    "path": "../Core/Src/gpio.c"
-                  },
-                  {
                     "path": "../Core/Src/adc.c"
                   },
                   {
                     "path": "../Core/Src/dma.c"
                   },
                   {
+                    "path": "../Core/Src/gpio.c"
+                  },
+                  {
+                    "path": "../Core/Src/i2c.c"
+                  },
+                  {
+                    "path": "../Core/Src/main.c"
+                  },
+                  {
                     "path": "../Core/Src/spi.c"
+                  },
+                  {
+                    "path": "../Core/Src/stm32l4xx_hal_msp.c"
+                  },
+                  {
+                    "path": "../Core/Src/stm32l4xx_it.c"
                   },
                   {
                     "path": "../Core/Src/tim.c"
                   },
                   {
                     "path": "../Core/Src/usart.c"
-                  },
-                  {
-                    "path": "../Core/Src/stm32l4xx_it.c"
-                  },
-                  {
-                    "path": "../Core/Src/stm32l4xx_hal_msp.c"
                   }
                 ],
                 "folders": []
@@ -214,6 +139,15 @@
         "name": "Drivers",
         "files": [],
         "folders": [
+          {
+            "name": "CMSIS",
+            "files": [
+              {
+                "path": "../Core/Src/system_stm32l4xx.c"
+              }
+            ],
+            "folders": []
+          },
           {
             "name": "STM32L4xx_HAL_Driver",
             "files": [
@@ -288,15 +222,6 @@
               }
             ],
             "folders": []
-          },
-          {
-            "name": "CMSIS",
-            "files": [
-              {
-                "path": "../Core/Src/system_stm32l4xx.c"
-              }
-            ],
-            "folders": []
           }
         ]
       },
@@ -304,53 +229,22 @@
         "name": "Project",
         "files": [
           {
-            "path": "../../CodeMultiPlatform/hlw8032.c"
+            "path": "../Project/mydevice.c"
           },
           {
-            "path": "../../CodeMultiPlatform/uart.c"
+            "path": "../Project/myhlw8032.c"
+          },
+          {
+            "path": "../Project/myoled.c"
+          },
+          {
+            "path": "../Project/mytask.c"
+          },
+          {
+            "path": "../Project/myuart.c"
           }
         ],
-        "folders": [
-          {
-            "name": "device",
-            "files": [
-              {
-                "path": "../../CodeMultiPlatform/device/device.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/device/protocol_hardware.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/device/protocol_software.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/device/timer.c"
-              }
-            ],
-            "folders": []
-          },
-          {
-            "name": "oledlib",
-            "files": [
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_basic.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_buffer.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_driver.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_font&bmp.c"
-              },
-              {
-                "path": "../../CodeMultiPlatform/oledlib/oled_print.c"
-              }
-            ],
-            "folders": []
-          }
-        ]
+        "folders": []
       }
     ]
   },
@@ -505,6 +399,7 @@
           "../../CodeMultiPlatform",
           "../../CodeMultiPlatform/device",
           "../../CodeMultiPlatform/oledlib",
+          "../Project",
           "RTE/_template"
         ],
         "defineList": [

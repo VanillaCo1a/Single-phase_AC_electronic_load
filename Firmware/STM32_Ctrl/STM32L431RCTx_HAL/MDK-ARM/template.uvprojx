@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32L431xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32L4xx_HAL_Driver/Inc;../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32L4xx/Include;../Drivers/CMSIS/Include;../../CodeMultiPlatform;../../CodeMultiPlatform/device;../../CodeMultiPlatform/oledlib</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32L4xx_HAL_Driver/Inc;../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32L4xx/Include;../Drivers/CMSIS/Include;../../CodeMultiPlatform;../../CodeMultiPlatform/device;../../CodeMultiPlatform/oledlib;..\Project</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1132,7 +1132,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Project</GroupName>
+          <GroupName>CodeMultiPlatform</GroupName>
           <Files>
             <File>
               <FileName>uart.c</FileName>
@@ -1147,7 +1147,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Project/device</GroupName>
+          <GroupName>CodeMultiPlatform/device</GroupName>
           <Files>
             <File>
               <FileName>device.c</FileName>
@@ -1165,14 +1165,14 @@
               <FilePath>..\..\CodeMultiPlatform\device\protocol_software.c</FilePath>
             </File>
             <File>
-              <FileName>timer.c</FileName>
+              <FileName>device_timer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\CodeMultiPlatform\device\timer.c</FilePath>
+              <FilePath>..\..\CodeMultiPlatform\device\device_timer.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Project/oledlib</GroupName>
+          <GroupName>CodeMultiPlatform/oledlib</GroupName>
           <Files>
             <File>
               <FileName>oled_basic.c</FileName>
@@ -1198,6 +1198,26 @@
               <FileName>oled_print.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\CodeMultiPlatform\oledlib\oled_print.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Project</GroupName>
+          <Files>
+            <File>
+              <FileName>mydevice.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Project\mydevice.c</FilePath>
+            </File>
+            <File>
+              <FileName>myoled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Project\myoled.c</FilePath>
+            </File>
+            <File>
+              <FileName>myuart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Project\myuart.c</FilePath>
             </File>
           </Files>
         </Group>

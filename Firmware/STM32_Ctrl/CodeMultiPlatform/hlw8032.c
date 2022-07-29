@@ -1,22 +1,6 @@
-#include "device.h"
-#include "uart.h"
 #include "hlw8032.h"
-
-// #define HLW8032_NUM 1
-// extern DEVCMNI_TypeDef uart_cmni[];
-// DEVS_TypeDef hlw8032s = {.type = HLW8032};
-// DEV_TypeDef hlw8032[HLW8032_NUM] = {
-//     {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[1], .init = NULL}},
-// };
-
-// void HLW8032_Init(void) {
-//     //DEV_Init(&hlw8032s, hlw8032, sizeof(hlw8032) / sizeof(*hlw8032));
-//     printf("hlw8032初始化完毕\r\n");
-// }
-// // bool UART3_ScanArray(uint8_t arr[], size_t size, size_t *length) {
-// //     DEV_setActStream(&hlw8032s, 0);
-// //     return DEVCMNI_Read((uint8_t *)arr, size, length, 0xFF);
-// // }
+#include "myuart.h"
+#include "oledlib.h"
 
 /* 最坏情况: 先读23位无效数据, 再读24位有效数据 */
 #define _SIZE_MAX 50
@@ -32,7 +16,7 @@ bool HLW8032_Ctrl(void) {
     bool res = false;
     size_t size;
     uint8_t start = 0;
-    if(UART3_ScanArray(buffer, sizeof(buffer), &size)) {
+    if(HLW8032_Read(buffer, sizeof(buffer), &size)) {
         if((res = ctrl(buffer, _SIZE_MAX, &start))) {
             count(&buffer[start]);
         }
@@ -43,9 +27,13 @@ bool HLW8032_Ctrl(void) {
 /* 由于有时存在脏值，将结果限幅为3位整数3位小数的定点数 */
 void HLW8032_Limit(void) {
     uint32_t *p = (uint32_t *)&pfcres;
-    for(size_t i=0; i < sizeof(pfcres)/sizeof(*p); i++) {
+    for(size_t i = 0; i < sizeof(pfcres) / sizeof(*p); i++) {
         p[i] %= 1000000;
     }
+}
+
+HLW8032_ResTypedef *HLW8032_GetResult(void) {
+    return &pfcres;
 }
 
 static bool ctrl(uint8_t *data, size_t size, uint8_t *start) {
@@ -127,13 +115,67 @@ static void count(uint8_t *data) {
     /* 计算电能 */
     pfcres.electricQuantity = 1000 * Energy_CNT / 1000000000 * Power_Parameter_REG * 3.006 * 1 / 3600;
 
-    // /* 若电压小于2V, 则视为假值并归0 */
-    // if(pfcres.voltage/1000 < 2) {
-    //     pfcres.voltage = 0;
-    // }
-    // /* 若功率溢出且功率未更新，归0 */
-    // if((data[0] == 0xf2) && (((data[20] >> 4) & 1) == 0)) {
-    //     pfcres.power = 0;
-    //     pfcres.powerFactorer = 0;
-    // }
+    /* 若电压小于2V, 则视为假值并归0 */
+    if(pfcres.voltage / 1000 < 2) {
+        pfcres.voltage = 0;
+    }
+    /* 若功率溢出且功率未更新，归0 */
+    if((data[0] == 0xf2) && (((data[20] >> 4) & 1) == 0)) {
+        pfcres.power = 0;
+        pfcres.powerFactorer = 0;
+    }
+}
+
+void HLW8032_Task(void) {
+    int8_t oled_mode = 0;
+
+    /* 获取8032数据 */
+    if(HLW8032_Ctrl()) {
+        HLW8032_Limit();
+
+        /* 串口输出 */
+        if(delayms_Timer_paral(500)) {
+            printf("V=%7.3lfV  I=%7.3lfA  P=%7.3lfW  PFC=%5.2lf%%  W=%7.3lfkWh\r\n",
+                   pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0,
+                   pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0,
+                   pfcres.electricQuantity / 1000.0);
+        }
+
+        /*  更新显存 */
+        if(delayus_Timer_paral(100)) {
+            OLED_clearBuffer();
+            switch(oled_mode) {
+            case 0:
+                SetFontSize(2);
+                OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "V=%7.3lfV", pfcres.voltage / 1000.0);
+                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "I=%7.3lfA", pfcres.currentIntensity / 1000.0);
+                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW", pfcres.power / 1000.0);
+                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "PFC=%5.2lf%%", pfcres.powerFactorer / 1000.0);
+                SetFontSize(0);
+                break;
+            case 1:
+                SetFontSize(1);
+                OLED_Printf(0 + 3 * 8, 0 + 0 * 8, "V=%7.3lfV I=%7.3lfA",
+                            pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0);
+                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW PFC=%5.2lf%%",
+                            pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0);
+                OLED_Printf(0 + 5 * 8, 0 + 0 * 8, "W=%7.3lfkWh",
+                            pfcres.electricQuantity / 1000.0);
+                SetFontSize(0);
+                break;
+            case 2:
+                SetFontSize(0);
+                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "V=%4.1lfV  I=%4.1lfA",
+                            pfcres.voltage / 1000.0, pfcres.currentIntensity / 1000.0);
+                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%4.1lfW  PFC=%2.0lf%%",
+                            pfcres.power / 1000.0, pfcres.powerFactorer / 1000.0);
+                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "W=%4.1lfkWh",
+                            pfcres.electricQuantity / 1000.0);
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
 }

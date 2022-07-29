@@ -625,7 +625,7 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVI2C_Transmit(I2C_ModuleH
 #define DEVSPI_SDI_Out(pot)      ((SPI_SoftHandleTypeDef *)modular->bus)->SDI_Out(pot)
 #define DEVSPI_SDO_In()          ((SPI_SoftHandleTypeDef *)modular->bus)->SDO_In()
 #define DEVSPI_CS_Out(pot)       ((SPI_SoftHandleTypeDef *)modular->bus)->CS_Out(pot)
-#define DEVSPI_ERROR(err)        ((SPI_SoftHandleTypeDef *)modular->bus)->error(err)
+#define DEVSPI_Error(err)        ((SPI_SoftHandleTypeDef *)modular->bus)->error(err)
 #define DEVSPI_delayus(us)       ({if(us) {((SPI_SoftHandleTypeDef *)modular->bus)->delayus(us-TIMER_DELAY);} })
 #define DEVSPI_delayms(ms)       ({if(ms) {((SPI_SoftHandleTypeDef *)modular->bus)->delayms(ms);} })
 #define DEVSPI_Delayus_paral(us) ((SPI_SoftHandleTypeDef *)modular->bus)->delayus_paral(us)
@@ -634,7 +634,7 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVI2C_Transmit(I2C_ModuleH
 #define DEVSPI_SDI_Out(pot)      DEVCMNI_SDA_SDI_OWRE_Out(pot)
 #define DEVSPI_SDO_In()          DEVCMNI_SDO_In()
 #define DEVSPI_CS_Out(pot)       DEVCMNI_CS_Out(pot)
-#define DEVSPI_ERROR(err)        DEVCMNI_Error(err)
+#define DEVSPI_Error(err)        DEVCMNI_Error(err)
 #define DEVSPI_delayus(us)       ({if(us) {DEVCMNI_Delayus(us-TIMER_DELAY);} })
 #define DEVSPI_delayms(ms)       ({if(ms) {DEVCMNI_Delayms(ms);} })
 #define DEVSPI_Delayus_paral(us) DEVCMNI_Delayus_paral(us)
@@ -734,7 +734,7 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVSPI_Transmit(SPI_ModuleH
 #undef DEVSPI_SDI_Out
 #undef DEVSPI_SDO_In
 #undef DEVSPI_CS_Out
-#undef DEVSPI_ERROR
+#undef DEVSPI_Error
 #undef DEVSPI_delayus
 #undef DEVSPI_delayms
 #undef DEVSPI_Delayus_paral
@@ -748,7 +748,7 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVSPI_Transmit(SPI_ModuleH
 #define DEVOWRE_OWIO_Set(dir)     ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->OWIO_Set(dir)
 #define DEVOWRE_OWIO_Out(pot)     ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->OWIO_Out(pot)
 #define DEVOWRE_OWIO_In()         ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->OWIO_In()
-#define DEVOWRE_ERROR(err)        ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->error(err)
+#define DEVOWRE_Error(err)        ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->error(err)
 #define DEVOWRE_delayus(us)       ({if(us) {((ONEWIRE_SoftHandleTypeDef *)modular->bus)->delayus(us);} })
 #define DEVOWRE_delayms(ms)       ({if(ms) {((ONEWIRE_SoftHandleTypeDef *)modular->bus)->delayms(ms);} })
 #define DEVOWRE_Delayus_paral(us) ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->delayus_paral(us)
@@ -756,7 +756,7 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVSPI_Transmit(SPI_ModuleH
 #define DEVOWRE_OWIO_Set(pot)     DEVCMNI_SDA_OWRE_Set(pot)
 #define DEVOWRE_OWIO_Out(pot)     DEVCMNI_SDA_SDI_OWRE_Out(pot)
 #define DEVOWRE_OWIO_In(pot)      DEVCMNI_SDA_OWRE_In(pot)
-#define DEVOWRE_ERROR(err)        DEVCMNI_Error(err)
+#define DEVOWRE_Error(err)        DEVCMNI_Error(err)
 #define DEVOWRE_delayus(us)       ({if(us) {DEVCMNI_Delayus(us);} })
 #define DEVOWRE_delayms(ms)       ({if(ms) {DEVCMNI_Delayms(ms);} })
 #define DEVOWRE_Delayus_paral(us) DEVCMNI_Delayus_paral(us)
@@ -906,7 +906,7 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVONEWIRE_Read(ONEWIRE_Mod
 #undef DEVOWRE_OWIO_Set
 #undef DEVOWRE_OWIO_Out
 #undef DEVOWRE_OWIO_In
-#undef DEVOWRE_ERROR
+#undef DEVOWRE_Error
 #undef DEVOWRE_delayus
 #undef DEVOWRE_delayms
 #undef DEVOWRE_Delayus_paral

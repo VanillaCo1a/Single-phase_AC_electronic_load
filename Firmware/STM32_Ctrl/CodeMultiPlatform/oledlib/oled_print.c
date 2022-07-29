@@ -845,14 +845,12 @@ void OLED_PrintIntNum(uint8_t y, uint8_t x, int32_t num, uint8_t len) {
     }
     OLED_PrintNum(y, x, num, len-1);
 }
-#define VA_BUF_SIZE 1024
-static char va_buf[VA_BUF_SIZE] = {0};
 void OLED_Printf(uint8_t y, uint8_t x, const char *str, ...) {
     uint8_t i, j;
     va_list args;
-    char *pstr = va_buf;
+    char *pstr = oled_va_buf;
     va_start(args, str);
-    vsnprintf(va_buf, sizeof(va_buf), (char *)str, args);
+    vsnprintf(oled_va_buf, oled_bufSize, (char *)str, args);
     va_end(args);
 
     //if(code == 0) {

@@ -27,7 +27,15 @@
 			"oled_config.h": "c",
 			"oled_basic.h": "c",
 			"oled_driver.h": "c",
-			"oled_print.h": "c"
+			"oled_print.h": "c",
+			"stdio.h": "c",
+			"protocol_hardware.h": "c",
+			"type_traits": "c",
+			"myuart.h": "c",
+			"mydevice.h": "c",
+			"myoled.h": "c",
+			"timer.h": "c",
+			"protocol_software.h": "c"
 		}
 	}
 }

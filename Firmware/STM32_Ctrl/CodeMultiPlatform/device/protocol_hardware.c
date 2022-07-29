@@ -42,7 +42,7 @@ DEVCMNI_StatusTypeDef DEVI2C_Transmit_H(
 #if defined(DEVSPI_HARDWARE_ENABLED)
 DEVCMNI_StatusTypeDef DEVSPI_Transmit_H(
     SPI_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, bool rw, uint32_t timeout) {
-    DEVCMNI_StatusTypeDef res;
+    DEVCMNI_StatusTypeDef res = false;
     if(modular->duplex == DEVSPI_FULL_DUPLEX) {
         //to add
     } else if(modular->duplex == DEVSPI_HALF_DUPLEX) {
@@ -230,10 +230,10 @@ static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart) {
 }
 
 /* 获取串口句柄对应通信句柄 */
-extern DEVS_TypeDef uarts;
-extern DEV_TypeDef uart[];
+extern DEVS_TypeDef *uarts;
+extern DEV_TypeDef *uart;
 static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus) {
-    for(size_t i = 0; i < uarts.size; i++) {
+    for(size_t i = 0; i < uarts->size; i++) {
         if(((UART_ModuleHandleTypeDef *)uart[i].cmni.confi->modular)->bus == bus) {
             return uart[i].cmni.confi->modular;
         }

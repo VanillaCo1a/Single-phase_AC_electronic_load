@@ -51,7 +51,6 @@ typedef struct ROATE {
 }TypeRoate;
 
 #include "device.h"
-#include "timer.h"
 #include "oled_driver.h"
 #include "oled_buffer.h"
 #include "oled_basic.h"

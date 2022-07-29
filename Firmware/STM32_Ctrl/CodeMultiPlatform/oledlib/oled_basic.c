@@ -226,7 +226,7 @@ void FloodFill2(uint8_t x,uint8_t y,int oldcolor,int newcolor) {
 uint8_t FrameRateOLED_updateScreen(int value) {
     if(OledTimeMs == 0) {
         updateBuffer();
-        OLED_ClearScreen();
+        OLED_Clear();
         OledTimeMs = 1000 / value;
         return 1;
     }

@@ -1,7 +1,7 @@
 #ifndef __DEVICE_H
 #define __DEVICE_H
 
-/* 头文件&宏定义1 */
+/* 头文件&宏定义 */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,43 +11,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define DEVI2C_SOFTWARE_ENABLED
-#define DEVSPI_SOFTWARE_ENABLED
-#define DEVOWRE_SOFTWARE_ENABLED
-#define DEVUART_SOFTWARE_ENABLED
-// #define DEVI2C_HARDWARE_ENABLED
-#define DEVSPI_HARDWARE_ENABLED
-// #define DEVOWRE_HARDWARE_ENABLED
-#define DEVUART_HARDWARE_ENABLED
-// #define DEVI2C_USEPOINTER
-// #define DEVSPI_USEPOINTER
-// #define DEVOWRE_USEPOINTER
-
-#define DEVPOOL_MAXNUM     100    //设备池大小
-#define DEVBUSYLIST_MAXNUM 20     //忙设备列表大小
-typedef uint16_t poolsize;        //池大小的数据类型
-
-
-/* 头文件&宏定义2 */
-#if !defined(STM32) && !defined(STC89C) && !defined(TC264) && \
-    !defined(TI) && !defined(ESP32) && !defined(HC32)
-#define STM32
-// #define STC89C
-// #define TC264
-// #define TI
-// #define ESP32
-// #define HC32
-#endif
-#if defined(STM32)
-#define STM32HAL
-// #define STM32FWLIB
-#define USE_LLLIB
-#define USE_REGISTER
-#elif defined(STC89C)
-// #define STC89C51
-#define STC89C52
-#endif
-
+#include "mydevice.h"
 #if defined(STM32)
 #if defined(STM32HAL)
 #include "main.h"
@@ -60,9 +24,17 @@ typedef uint16_t poolsize;        //池大小的数据类型
 #include "stm32f10x.h"
 #endif
 #endif
+#include "device_timer.h"
 #include "protocol_software.h"
 #include "protocol_hardware.h"
 
+#ifndef DEV_DEFINE
+#define DEV_DEFINE
+/* 设备池尺寸宏定义 */
+#define DEVPOOL_MAXNUM     20   //设备池大小
+#define DEVBUSYLIST_MAXNUM 10   //忙设备列表大小
+typedef uint16_t poolsize;      //池大小的数据类型
+#endif // !DEV_DEFINE
 
 /* 枚举 */
 typedef enum {
@@ -172,7 +144,7 @@ typedef struct {             //设备结构体
 
 /* 设备相关函数 */
 //    设备构造&错误处理部分
-void DEV_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize num);
+void DEV_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size);
 void DEV_Error(uint16_t err);
 //    活动流控制部分
 int8_t DEV_setActDevs(DEVS_TypeDef *self);

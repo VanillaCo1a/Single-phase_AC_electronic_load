@@ -98,5 +98,5 @@ void funcBuffer(int32_t func, int8_t partto, int8_t partfrom) {
 }
 //将screenBuffer屏幕缓存的内容显示到屏幕上
 void updateBuffer(void) {
-    OLED_FillScreen(&screenBuffer[getBufferPart()]);
+    OLED_Fill(&screenBuffer[getBufferPart()]);
 }

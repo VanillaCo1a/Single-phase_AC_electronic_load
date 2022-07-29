@@ -1,19 +1,5 @@
-#include "timer.h"
-#include "device.h"
+#include "device_timer.h"
 
-////////////////////////////////////////////////////////////////////////////
-//定时器配置部分, 默认使用TIM4, 向上计数模式, 周期1ms
-//2^64-1us约为58w年, 基本够用了, 因此不考虑数据溢出归零涉及的延时计算问题
-volatile uint64_t time_us = 0, time_ms = 0;
-volatile int8_t flag_timerrupt = 0;
-uint32_t TIMER_getRunTimems(void) {
-    return time_ms;
-}
-uint32_t TIMER_getRunTimes(void) {
-    return time_ms / 1000;
-}
-
-////////////////////////////////////////////////////////////////////////////
 volatile uint64_t _time = 0;
 void TIMER_tick(void) {
     _time = TIMER_getRunTimeus();
@@ -25,7 +11,19 @@ float TIMER_fps(void) {
     return 1000000.0/(TIMER_getRunTimeus() - _time);
 }
 
-////////////////////////////////////////////////////////////////////////////
+
+//定时器配置部分, 默认使用TIM4, 向上计数模式, 周期1ms
+//2^64-1us约为58w年, 基本够用了, 因此不考虑数据溢出归零涉及的延时计算问题
+volatile uint64_t time_us = 0, time_ms = 0;
+volatile int8_t flag_timerrupt = 0;
+uint32_t TIMER_getRunTimems(void) {
+    return time_ms;
+}
+uint32_t TIMER_getRunTimes(void) {
+    return time_ms / 1000;
+}
+
+
 /***    第一次调用函数时开始计时, 后续调用时返回比较结果, 延时未结束返回0, 结束则返回1
 注意: 每个延时函数需要定义单独的静态参数供函数使用, 内存开销较大,
 考虑过减小*compare的大小, 但是经过考虑决定节省在取余和除法上的3us开销, 尽可能地提高精度
@@ -87,23 +85,22 @@ int8_t TIMER_scmptor(uint64_t s, volatile uint64_t *compare, volatile int8_t *st
     return result;
 }
 
+
+#if defined(STM32)
 #if defined(STM32HAL)
 TIM_HandleTypeDef *htimer = &TIMERHANDLE;
-void TIMER_Confi(void) {
+void TIMER_Init(void) {
     HAL_TIM_Base_Start_IT(htimer);
 }
-void TIMER_Callback(void) {
-    time_ms++;
-    time_us += 1000;
-    flag_timerrupt = 0;
-}
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if(htim == htimer) {
-        TIMER_Callback();
+void TIMER_Callback(void *handle) {
+    if(handle == htimer) {
+        time_ms++;
+        time_us += 1000;
+        flag_timerrupt = 0;
     }
 }
 #elif defined(STM32FWLIB)
-void TIMER_Init(void) {
+void TIMER_Init_(void) {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
     RCC_ClocksTypeDef RCC_ClocksStructure;
     RCC_GetClocksFreq(&RCC_ClocksStructure);
@@ -122,24 +119,22 @@ void TIMER_NVIC_Init(void) {
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
-void TIMER_Confi(void) {
+void TIMER_Init(void) {
 #ifndef NVICGROUP
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 #endif
-    TIMER_Init();
+    TIMER_Init_();
     TIMER_NVIC_Init();
     TIM_ITConfig(TIMER, TIM_IT_Update, ENABLE);
     TIM_Cmd(TIMER, ENABLE);
 }
-void TIMER_Callback(void) {
-    time_ms++;
-    time_us += 1000;
-    flag_timerrupt = 0;
-}
-void TIM4_IRQHandler(void) {
+void TIMER_Callback(void *handle) {
     if(TIM_GetITStatus(TIMER, TIM_IT_Update) != RESET) {
         TIM_ClearITPendingBit(TIMER, TIM_IT_Update);
-        TIMER_Callback();
+        time_ms++;
+        time_us += 1000;
+        flag_timerrupt = 0;
     }
 }
+#endif
 #endif
