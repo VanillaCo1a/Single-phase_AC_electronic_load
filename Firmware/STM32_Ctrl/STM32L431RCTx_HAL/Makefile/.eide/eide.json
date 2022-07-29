@@ -1,67 +1,12 @@
 {
   "name": "Makefile",
   "type": "ARM",
-  "mode": "template",
-  "toolchain": "GCC",
-  "dependenceList": [
-    {
-      "groupName": "custom",
-      "depList": [
-        {
-          "name": "default",
-          "incList": [
-            "./.eide/deps",
-            "./../Project"
-          ],
-          "libList": [],
-          "sourceDirList": [],
-          "defineList": [
-            "USE_HAL_DRIVER",
-            "STM32L431xx"
-          ]
-        }
-      ]
-    }
-  ],
-  "compileConfig": {
-    "cpuType": "Cortex-M4",
-    "floatingPointHardware": "single",
-    "useCustomScatterFile": false,
-    "scatterFilePath": "STM32L431RCTx_FLASH.ld",
-    "storageLayout": {
-      "RAM": [
-        {
-          "tag": "IRAM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x20000000",
-            "size": "0x5000"
-          },
-          "isChecked": true,
-          "noInit": false
-        }
-      ],
-      "ROM": [
-        {
-          "tag": "IROM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x08000000",
-            "size": "0x10000"
-          },
-          "isChecked": true,
-          "isStartup": true
-        }
-      ]
-    },
-    "options": "null"
-  },
-  "uploader": "OpenOCD",
+  "dependenceList": [],
   "srcDirs": [
-    "./.eide/deps",
-    "./../Core",
-    "./../Drivers",
-    "./../../CodeMultiPlatform"
+    ".eide/deps",
+    "../Core",
+    "../Drivers",
+    "../../CodeMultiPlatform"
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
@@ -105,20 +50,79 @@
       }
     ]
   },
-  "excludeList": [],
   "outDir": "..\\build\\Makefile",
   "deviceName": null,
   "packDir": null,
-  "uploadConfig": {
-    "bin": "",
-    "target": "stm32l4x",
-    "interface": "cmsis-dap",
-    "baseAddr": "0x08000000"
-  },
-  "uploadConfigMap": {},
   "miscInfo": {
     "uid": "55cb018203f94c22ad4805f3400281b8"
   },
-  "targets": {},
-  "version": "3.1"
+  "targets": {
+    "template": {
+      "excludeList": [],
+      "toolchain": "GCC",
+      "compileConfig": {
+        "cpuType": "Cortex-M4",
+        "floatingPointHardware": "single",
+        "useCustomScatterFile": false,
+        "scatterFilePath": "STM32L431RCTx_FLASH.ld",
+        "storageLayout": {
+          "RAM": [
+            {
+              "tag": "IRAM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x20000000",
+                "size": "0x5000"
+              },
+              "isChecked": true,
+              "noInit": false
+            }
+          ],
+          "ROM": [
+            {
+              "tag": "IROM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x08000000",
+                "size": "0x10000"
+              },
+              "isChecked": true,
+              "isStartup": true
+            }
+          ]
+        },
+        "options": "null"
+      },
+      "uploader": "OpenOCD",
+      "uploadConfig": {
+        "bin": "",
+        "target": "stm32l4x",
+        "interface": "cmsis-dap",
+        "baseAddr": "0x08000000"
+      },
+      "uploadConfigMap": {},
+      "custom_dep": {
+        "name": "default",
+        "incList": [
+          ".eide/deps",
+          "../Project",
+          "../../CodeMultiPlatform/device",
+          "../../CodeMultiPlatform/oledlib",
+          "../../CodeMultiPlatform",
+          "../Core/Inc",
+          "../Drivers/STM32L4xx_HAL_Driver/Inc",
+          "../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy",
+          "../Drivers/CMSIS/Device/ST/STM32L4xx/Include",
+          "../Drivers/CMSIS/Include"
+        ],
+        "libList": [],
+        "sourceDirList": [],
+        "defineList": [
+          "USE_HAL_DRIVER",
+          "STM32L431xx"
+        ]
+      }
+    }
+  },
+  "version": "3.3"
 }

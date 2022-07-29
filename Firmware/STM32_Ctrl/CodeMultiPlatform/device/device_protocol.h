@@ -1,5 +1,5 @@
-#ifndef __PROTOCOL_SOFTWARE_H
-#define __PROTOCOL_SOFTWARE_H
+#ifndef __DEVICE_PROTOCOL_H
+#define __DEVICE_PROTOCOL_H
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -31,14 +31,28 @@ typedef enum {
     OUT
 } Direct_TypeDef;
 typedef enum {
+#if defined(STM32)
+#if defined(STM32HAL)
+    DEVCMNI_OK = HAL_OK,
+    DEVCMNI_ERROR = HAL_ERROR,
+    DEVCMNI_BUSY = HAL_BUSY,
+    DEVCMNI_TIMEOUT = HAL_TIMEOUT
+#elif defined(STM32FWLIB)
     DEVCMNI_OK = 0,
     DEVCMNI_ERROR,
     DEVCMNI_BUSY,
     DEVCMNI_TIMEOUT
+#else
+    DEVCMNI_OK,
+    DEVCMNI_ERROR,
+    DEVCMNI_BUSY,
+    DEVCMNI_TIMEOUT
+#endif
+#endif
 } DEVCMNI_StatusTypeDef;
 
 
-/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION DECLARAION OF I2C DEVICE COMMUNITCATION  ***/
+/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF I2C DEVICE COMMUNITCATION  ***/
 typedef enum {
     DEVI2C_SCL,
     DEVI2C_SDA
@@ -63,6 +77,68 @@ typedef enum {
     DEVI2C_LEVER1 = 0,    //当从机未响应超时, 时钟拉伸超时, 发生总线仲裁时均进入错误处理函数
     DEVI2C_LEVER0 = 1,    //无需从机应答, 在时钟拉伸超时后继续读写下一位, 无视发生的总线仲裁
 } DEVI2C_ErrhandTypeDef;
+typedef struct {                      //I2C总线设备结构体
+    uint8_t addr;                     //模块I2C地址
+    bool skip;                        //是否需要读/写内部寄存器
+    DEVI2C_SpeedTypeDef speed;        //模块I2C速率
+    DEVI2C_ErrhandTypeDef errhand;    //模块的错误处理方式
+    void *bus;                        //I2C模拟/硬件总线句柄
+} I2C_ModuleHandleTypeDef;
+
+
+/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF SPI DEVICE COMMUNITCATION  ***/
+typedef enum {
+    DEVSPI_FULL_DUPLEX,
+    DEVSPI_HALF_DUPLEX
+} DEVSPI_DuplexTypeTypeDef;
+typedef struct {                        //SPI总线模块结构体
+    bool skip;                          //是否需要拉低片选
+    DEVSPI_DuplexTypeTypeDef duplex;    //设备工作模式
+    void *bus;                          //SPI模拟/硬件总线句柄
+} SPI_ModuleHandleTypeDef;
+
+
+/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF 1-WIRE DEVICE COMMUNITCATION  ***/
+typedef struct {
+    uint64_t rom;    //模块64位ROM编码
+    bool skip;       //是否跳过ROM匹配
+    void *bus;       //ONEWIRE总线句柄
+} ONEWIRE_ModuleHandleTypeDef;
+
+
+/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF UART DEVICE COMMUNITCATION  ***/
+typedef struct {
+    uint8_t *buf;
+    volatile size_t size;
+    volatile size_t count;
+    volatile bool state;
+} BufferTypedef;
+typedef struct {
+    BufferTypedef receive;
+    BufferTypedef transmit;
+    bool usedma;
+    bool checkidle;
+    void *bus;
+} UART_ModuleHandleTypeDef;
+
+
+/***  SOFTWARE FUNCTION DECLARAION OF I2C/SPI/1-WIRE DEVICE COMMUNITCATION  ***/
+void DEVCMNI_SCL_Set(bool dir);
+void DEVCMNI_SDA_OWRE_Set(bool dir);
+void DEVCMNI_SCL_SCK_Out(bool pot);
+void DEVCMNI_SDA_SDI_OWRE_Out(bool pot);
+bool DEVCMNI_SCL_In(void);
+bool DEVCMNI_SDA_OWRE_In(void);
+bool DEVCMNI_SDO_In(void);
+void DEVCMNI_CS_Out(bool pot);
+void DEVCMNI_Error(int8_t err);
+void DEVCMNI_Delayus(uint64_t us);
+void DEVCMNI_Delayms(uint64_t ms);
+int8_t DEVCMNI_Delayus_paral(uint64_t us);
+
+
+/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF I2C DEVICE COMMUNITCATION  ***/
+#ifdef DEVI2C_SOFTWARE_ENABLED
 typedef struct {          //I2C模拟总线结构体
     bool clockstretch;    //是否启用时钟拉伸
     bool arbitration;     //是否启用总线仲裁
@@ -79,76 +155,6 @@ typedef struct {          //I2C模拟总线结构体
     int8_t (*delayus_paral)(uint16_t us);
 #endif    // DEVI2C_USEPOINTER
 } I2C_SoftHandleTypeDef;
-typedef struct {                      //I2C总线设备结构体
-    uint8_t addr;                     //模块I2C地址
-    bool skip;                        //是否需要读/写内部寄存器
-    DEVI2C_SpeedTypeDef speed;        //模块I2C速率
-    DEVI2C_ErrhandTypeDef errhand;    //模块的错误处理方式
-    void *bus;                        //I2C模拟/硬件总线句柄
-} I2C_ModuleHandleTypeDef;
-
-
-/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION DECLARAION OF SPI DEVICE COMMUNITCATION  ***/
-typedef enum {
-    DEVSPI_FULL_DUPLEX,
-    DEVSPI_HALF_DUPLEX
-} DEVSPI_DuplexTypeTypeDef;
-typedef struct {    //SPI模拟总线结构体
-    bool something;
-#ifdef DEVSPI_USEPOINTER
-    void (*SCK_Out)(bool);
-    void (*SDI_Out)(bool);
-    bool (*SDO_In)();
-    void (*CS_Out)(bool);
-    void (*error)(int8_t err);
-    void (*delayus)(uint16_t us);
-    void (*delayms)(uint16_t ms);
-    int8_t (*delayus_paral)(uint16_t us);
-#endif    //DEVSPI_USEPOINTER
-} SPI_SoftHandleTypeDef;
-typedef struct {                        //SPI总线模块结构体
-    bool skip;                          //是否需要拉低片选
-    DEVSPI_DuplexTypeTypeDef duplex;    //设备工作模式
-    void *bus;                          //SPI模拟/硬件总线句柄
-} SPI_ModuleHandleTypeDef;
-
-
-/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION DECLARAION OF 1-WIRE DEVICE COMMUNITCATION  ***/
-typedef struct {           //ONEWIRE模拟总线结构体
-    uint64_t num;          //总线上的设备数量
-    int8_t flag_search;    //总线在最近一段时间内是否进行过搜索以更新设备数量
-#ifdef DEVOWRE_USEPOINTER
-    void (*OWIO_Set)(bool);
-    void (*OWIO_Out)(bool);
-    bool (*OWIO_In)(void);
-    void (*error)(int8_t err);
-    void (*delayus)(uint16_t us);
-    void (*delayms)(uint16_t ms);
-    int8_t (*delayus_paral)(uint16_t us);
-#endif    // DEVOWRE_USEPOINTER
-} ONEWIRE_SoftHandleTypeDef;
-typedef struct {
-    uint64_t rom;    //模块64位ROM编码
-    bool skip;       //是否跳过ROM匹配
-    void *bus;       //ONEWIRE总线句柄
-} ONEWIRE_ModuleHandleTypeDef;
-
-void DEVCMNI_SCL_Set(bool dir);
-void DEVCMNI_SDA_OWRE_Set(bool dir);
-void DEVCMNI_SCL_SCK_Out(bool pot);
-void DEVCMNI_SDA_SDI_OWRE_Out(bool pot);
-bool DEVCMNI_SCL_In(void);
-bool DEVCMNI_SDA_OWRE_In(void);
-bool DEVCMNI_SDO_In(void);
-void DEVCMNI_CS_Out(bool pot);
-void DEVCMNI_Error(int8_t err);
-void DEVCMNI_Delayus(uint64_t us);
-void DEVCMNI_Delayms(uint64_t ms);
-int8_t DEVCMNI_Delayus_paral(uint64_t us);
-
-
-/***  SOFTWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION  ***/
-#ifdef DEVI2C_SOFTWARE_ENABLED
 #if defined(DEVI2C_USEPOINTER)
 #define DEVI2C_SCL_Set(dir)      i2cbus.SCL_Set(dir)
 #define DEVI2C_SDA_Set(dir)      i2cbus.SDA_Set(dir)
@@ -213,7 +219,7 @@ static int8_t DEVI2C_Init(I2C_ModuleHandleTypeDef *modular, uint32_t timeout) {
 /* 以下的整个持续读写过程为原子操作, 每个函数(除Start())开始前与(除Stop())结束后总是有: SCL,SDA为IO输出模式, SCL为未释放状态(置低) */
 /* 对于进一步切割, 使同一条总线上的读写操作可以并行运行的工作, 还有待探究 */
 static inline bool DEVI2C_ClockStetch(void) {    //时钟拉伸判断函数
-    if(i2cmodular.errhand == DEVI2C_LEVER0) {      //直接写下一位
+    if(i2cmodular.errhand == DEVI2C_LEVER0) {    //直接写下一位
         return 0;
     } else if(i2cmodular.errhand == DEVI2C_LEVER1) {    //等待时钟线释放直至超时
         DEVI2C_SCL_Set(IN);
@@ -230,7 +236,7 @@ static inline bool DEVI2C_ClockStetch(void) {    //时钟拉伸判断函数
     return 0;
 }
 static inline bool DEVI2C_BusArbitration(void) {    //总线仲裁判断函数
-    if(i2cmodular.errhand == DEVI2C_LEVER0) {         //直接写下一位
+    if(i2cmodular.errhand == DEVI2C_LEVER0) {       //直接写下一位
         return 0;
     } else if(i2cmodular.errhand == DEVI2C_LEVER1) {    //等待数据线释放直至超时
         DEVI2C_SDA_Set(IN);
@@ -618,8 +624,21 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVI2C_Transmit(I2C_ModuleH
 #endif    // DEVI2C_SOFTWARE_ENABLED
 
 
-/***  SOFTWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION  ***/
+/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF SPI DEVICE COMMUNITCATION  ***/
 #ifdef DEVSPI_SOFTWARE_ENABLED
+typedef struct {    //SPI模拟总线结构体
+    bool something;
+#ifdef DEVSPI_USEPOINTER
+    void (*SCK_Out)(bool);
+    void (*SDI_Out)(bool);
+    bool (*SDO_In)();
+    void (*CS_Out)(bool);
+    void (*error)(int8_t err);
+    void (*delayus)(uint16_t us);
+    void (*delayms)(uint16_t ms);
+    int8_t (*delayus_paral)(uint16_t us);
+#endif    //DEVSPI_USEPOINTER
+} SPI_SoftHandleTypeDef;
 #if defined(DEVSPI_USEPOINTER)
 #define DEVSPI_SCK_Out(pot)      ((SPI_SoftHandleTypeDef *)modular->bus)->SCK_Out(pot)
 #define DEVSPI_SDI_Out(pot)      ((SPI_SoftHandleTypeDef *)modular->bus)->SDI_Out(pot)
@@ -742,8 +761,21 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVSPI_Transmit(SPI_ModuleH
 #endif    // DEVSPI_SOFTWARE_ENABLED
 
 
-/***  SOFTWARE IMPLEMENTATION FUNCTION OF 1-WIRE DEVICE COMMUNITCATION  ***/
+/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF 1-WIRE DEVICE COMMUNITCATION  ***/
 #ifdef DEVOWRE_SOFTWARE_ENABLED
+typedef struct {           //ONEWIRE模拟总线结构体
+    uint64_t num;          //总线上的设备数量
+    int8_t flag_search;    //总线在最近一段时间内是否进行过搜索以更新设备数量
+#ifdef DEVOWRE_USEPOINTER
+    void (*OWIO_Set)(bool);
+    void (*OWIO_Out)(bool);
+    bool (*OWIO_In)(void);
+    void (*error)(int8_t err);
+    void (*delayus)(uint16_t us);
+    void (*delayms)(uint16_t ms);
+    int8_t (*delayus_paral)(uint16_t us);
+#endif    // DEVOWRE_USEPOINTER
+} ONEWIRE_SoftHandleTypeDef;
 #if defined(DEVOWRE_USEPOINTER)
 #define DEVOWRE_OWIO_Set(dir)     ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->OWIO_Set(dir)
 #define DEVOWRE_OWIO_Out(pot)     ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->OWIO_Out(pot)
@@ -918,4 +950,38 @@ __attribute__((unused)) static DEVCMNI_StatusTypeDef DEVONEWIRE_Read(ONEWIRE_Mod
 
 #endif    // DEVUART_SOFTWARE_ENABLED
 
-#endif    // !__PROTOCOL_SOFTWARE_H
+
+/***  HARDWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION  ***/
+#if defined(DEVI2C_HARDWARE_ENABLED)
+#include "i2c.h"
+DEVCMNI_StatusTypeDef DEVI2C_Transmit_H(I2C_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, uint8_t address, bool rw, uint32_t timeout);
+
+#endif    // DEVI2C_HARDWARE_ENABLED
+
+
+/***  HARDWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION  ***/
+#if defined(DEVSPI_HARDWARE_ENABLED)
+#include "spi.h"
+DEVCMNI_StatusTypeDef DEVSPI_Transmit_H(SPI_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, bool rw, uint32_t timeout);
+
+#endif    // DEVSPI_HARDWARE_ENABLED
+
+
+/***  HARDWARE IMPLEMENTATION FUNCTION OF 1-WIRE DEVICE COMMUNITCATION  ***/
+#if defined(DEVOWRE_HARDWARE_ENABLED)
+#include "onewire.h"
+
+#endif    // DEVOWRE_HARDWARE_ENABLED
+
+
+/***  HARDWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION  ***/
+#if defined(DEVUART_HARDWARE_ENABLED)
+#include "usart.h"
+/* 串口接收函数 */
+DEVCMNI_StatusTypeDef DEVUART_Receive(UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, size_t *length);
+/* 串口发送函数 */
+DEVCMNI_StatusTypeDef DEVUART_Transmit(UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size);
+
+#endif    // DEVUART_HARDWARE_ENABLED
+
+#endif    // !__DEVICE_PROTOCOL_H

@@ -25,8 +25,7 @@
 #endif
 #endif
 #include "device_timer.h"
-#include "protocol_software.h"
-#include "protocol_hardware.h"
+#include "device_protocol.h"
 
 #ifndef DEV_DEFINE
 #define DEV_DEFINE

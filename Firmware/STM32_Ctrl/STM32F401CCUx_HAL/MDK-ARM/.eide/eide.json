@@ -1,275 +1,395 @@
 {
-    "name": "MDK-ARM",
-    "type": "ARM",
-    "mode": "template",
-    "toolchain": "AC6",
-    "dependenceList": [
-        {
-            "groupName": "custom",
-            "depList": [
-                {
-                    "name": "default",
-                    "sourceDirList": [],
-                    "libList": [],
-                    "incList": [
-                        "./../Core/Inc",
-                        "./../Drivers/STM32F4xx_HAL_Driver/Inc",
-                        "./../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
-                        "./../Drivers/CMSIS/Device/ST/STM32F4xx/Include",
-                        "./../Drivers/CMSIS/Include",
-                        "./.cmsis/dsp_lib",
-                        "./.cmsis/include",
-                        "./RTE/_template",
-                        "./.eide/deps"
-                    ],
-                    "defineList": [
-                        "USE_HAL_DRIVER",
-                        "STM32F401xC"
-                    ]
-                }
+  "name": "template",
+  "type": "ARM",
+  "dependenceList": [],
+  "srcDirs": [
+    ".eide/deps"
+  ],
+  "virtualFolder": {
+    "name": "<virtual_root>",
+    "files": [],
+    "folders": [
+      {
+        "name": "Application",
+        "files": [],
+        "folders": [
+          {
+            "name": "MDK-ARM",
+            "files": [
+              {
+                "path": "../../STM32L431RCTx_HAL/MDK-ARM/startup_stm32l431xx.s"
+              }
+            ],
+            "folders": []
+          },
+          {
+            "name": "User",
+            "files": [],
+            "folders": [
+              {
+                "name": "Core",
+                "files": [
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/main.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/gpio.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/adc.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/dma.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/i2c.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/spi.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/tim.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/usart.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/stm32l4xx_it.c"
+                  },
+                  {
+                    "path": "../../STM32L431RCTx_HAL/Core/Src/stm32l4xx_hal_msp.c"
+                  }
+                ],
+                "folders": []
+              }
             ]
-        }
-    ],
-    "compileConfig": {
+          }
+        ]
+      },
+      {
+        "name": "Drivers",
+        "files": [],
+        "folders": [
+          {
+            "name": "STM32L4xx_HAL_Driver",
+            "files": [
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_adc.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_adc_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_i2c.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_i2c_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_flash.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_flash_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_flash_ramfunc.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_gpio.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_dma.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_dma_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_cortex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_exti.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_spi.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_spi_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c"
+              },
+              {
+                "path": "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart_ex.c"
+              }
+            ],
+            "folders": []
+          },
+          {
+            "name": "CMSIS",
+            "files": [
+              {
+                "path": "../../STM32L431RCTx_HAL/Core/Src/system_stm32l4xx.c"
+              }
+            ],
+            "folders": []
+          }
+        ]
+      },
+      {
+        "name": "CodeMultiPlatform",
+        "files": [
+          {
+            "path": "../../CodeMultiPlatform/uart.c"
+          },
+          {
+            "path": "../../CodeMultiPlatform/hlw8032.c"
+          },
+          {
+            "path": "../../CodeMultiPlatform/inverter.c"
+          }
+        ],
+        "folders": [
+          {
+            "name": "device",
+            "files": [
+              {
+                "path": "../../CodeMultiPlatform/device/device.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/device/device_timer.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/device/device_protocol.c"
+              }
+            ],
+            "folders": []
+          },
+          {
+            "name": "oledlib",
+            "files": [
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_basic.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_buffer.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_driver.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_font&bmp.c"
+              },
+              {
+                "path": "../../CodeMultiPlatform/oledlib/oled_print.c"
+              }
+            ],
+            "folders": []
+          }
+        ]
+      },
+      {
+        "name": "Project",
+        "files": [
+          {
+            "path": "../../STM32L431RCTx_HAL/Project/mydevice.c"
+          },
+          {
+            "path": "../../STM32L431RCTx_HAL/Project/myoled.c"
+          },
+          {
+            "path": "../../STM32L431RCTx_HAL/Project/myuart.c"
+          },
+          {
+            "path": "../../STM32L431RCTx_HAL/Project/myhlw8032.c"
+          },
+          {
+            "path": "../../STM32L431RCTx_HAL/Project/mytask.c"
+          }
+        ],
+        "folders": []
+      },
+      {
+        "name": "::CMSIS",
+        "files": [],
+        "folders": []
+      }
+    ]
+  },
+  "outDir": "..\\build\\MDK-ARM",
+  "deviceName": null,
+  "packDir": null,
+  "miscInfo": {
+    "uid": "3c7619f03d660167d0c1837323a55c9a"
+  },
+  "targets": {
+    "template": {
+      "excludeList": [],
+      "toolchain": "AC6",
+      "compileConfig": {
         "cpuType": "Cortex-M4",
         "floatingPointHardware": "single",
         "useCustomScatterFile": false,
         "scatterFilePath": "undefined",
         "storageLayout": {
-            "RAM": [
-                {
-                    "tag": "RAM",
-                    "id": 1,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "noInit": false
-                },
-                {
-                    "tag": "RAM",
-                    "id": 2,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "noInit": false
-                },
-                {
-                    "tag": "RAM",
-                    "id": 3,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "noInit": false
-                },
-                {
-                    "tag": "IRAM",
-                    "id": 1,
-                    "mem": {
-                        "startAddr": "0x20000000",
-                        "size": "0x10000"
-                    },
-                    "isChecked": true,
-                    "noInit": false
-                },
-                {
-                    "tag": "IRAM",
-                    "id": 2,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "noInit": false
-                }
-            ],
-            "ROM": [
-                {
-                    "tag": "ROM",
-                    "id": 1,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "isStartup": false
-                },
-                {
-                    "tag": "ROM",
-                    "id": 2,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "isStartup": false
-                },
-                {
-                    "tag": "ROM",
-                    "id": 3,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "isStartup": false
-                },
-                {
-                    "tag": "IROM",
-                    "id": 1,
-                    "mem": {
-                        "startAddr": "0x08000000",
-                        "size": "0x40000"
-                    },
-                    "isChecked": true,
-                    "isStartup": true
-                },
-                {
-                    "tag": "IROM",
-                    "id": 2,
-                    "mem": {
-                        "startAddr": "",
-                        "size": ""
-                    },
-                    "isChecked": false,
-                    "isStartup": false
-                }
-            ]
-        },
-        "options": "null"
-    },
-    "uploader": "OpenOCD",
-    "srcDirs": [
-        "./.eide/deps"
-    ],
-    "virtualFolder": {
-        "name": "<virtual_root>",
-        "files": [],
-        "folders": [
+          "RAM": [
             {
-                "name": "Application",
-                "files": [],
-                "folders": [
-                    {
-                        "name": "MDK-ARM",
-                        "files": [
-                            {
-                                "path": "startup_stm32f401xc.s"
-                            }
-                        ],
-                        "folders": []
-                    },
-                    {
-                        "name": "User",
-                        "files": [],
-                        "folders": [
-                            {
-                                "name": "Core",
-                                "files": [
-                                    {
-                                        "path": "../Core/Src/main.c"
-                                    },
-                                    {
-                                        "path": "../Core/Src/gpio.c"
-                                    },
-                                    {
-                                        "path": "../Core/Src/stm32f4xx_it.c"
-                                    },
-                                    {
-                                        "path": "../Core/Src/stm32f4xx_hal_msp.c"
-                                    }
-                                ],
-                                "folders": []
-                            }
-                        ]
-                    }
-                ]
+              "tag": "RAM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "noInit": false
             },
             {
-                "name": "Drivers",
-                "files": [],
-                "folders": [
-                    {
-                        "name": "STM32F4xx_HAL_Driver",
-                        "files": [
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c"
-                            },
-                            {
-                                "path": "../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c"
-                            }
-                        ],
-                        "folders": []
-                    },
-                    {
-                        "name": "CMSIS",
-                        "files": [
-                            {
-                                "path": "../Core/Src/system_stm32f4xx.c"
-                            }
-                        ],
-                        "folders": []
-                    }
-                ]
+              "tag": "RAM",
+              "id": 2,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "noInit": false
+            },
+            {
+              "tag": "RAM",
+              "id": 3,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "noInit": false
+            },
+            {
+              "tag": "IRAM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x20000000",
+                "size": "0xc000"
+              },
+              "isChecked": true,
+              "noInit": false
+            },
+            {
+              "tag": "IRAM",
+              "id": 2,
+              "mem": {
+                "startAddr": "0x10000000",
+                "size": "0x4000"
+              },
+              "isChecked": true,
+              "noInit": false
             }
-        ]
-    },
-    "excludeList": [],
-    "outDir": "..\\build\\MDK-ARM",
-    "deviceName": null,
-    "packDir": null,
-    "uploadConfig": {
+          ],
+          "ROM": [
+            {
+              "tag": "ROM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "isStartup": false
+            },
+            {
+              "tag": "ROM",
+              "id": 2,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "isStartup": false
+            },
+            {
+              "tag": "ROM",
+              "id": 3,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "isStartup": false
+            },
+            {
+              "tag": "IROM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x8000000",
+                "size": "0x40000"
+              },
+              "isChecked": true,
+              "isStartup": true
+            },
+            {
+              "tag": "IROM",
+              "id": 2,
+              "mem": {
+                "startAddr": "0x0",
+                "size": "0x0"
+              },
+              "isChecked": false,
+              "isStartup": false
+            }
+          ]
+        },
+        "options": "null"
+      },
+      "uploader": "OpenOCD",
+      "uploadConfig": {
         "bin": "",
         "target": "stm32f4x",
         "interface": "cmsis-dap",
         "baseAddr": "0x08000000"
-    },
-    "uploadConfigMap": {},
-    "miscInfo": {},
-    "targets": {},
-    "version": "3.0"
+      },
+      "uploadConfigMap": {},
+      "custom_dep": {
+        "name": "default",
+        "incList": [
+          "../../STM32L431RCTx_HAL/Core/Inc",
+          "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Inc",
+          "../../STM32L431RCTx_HAL/Drivers/STM32L4xx_HAL_Driver/Inc/Legacy",
+          "../../STM32L431RCTx_HAL/Drivers/CMSIS/Device/ST/STM32L4xx/Include",
+          "../../STM32L431RCTx_HAL/Drivers/CMSIS/Include",
+          "../../CodeMultiPlatform",
+          "../../CodeMultiPlatform/device",
+          "../../CodeMultiPlatform/oledlib",
+          "../../STM32L431RCTx_HAL/Project",
+          "../../STM32L431RCTx_HAL/MDK-ARM/RTE/_template",
+          ".eide/deps"
+        ],
+        "libList": [],
+        "sourceDirList": [],
+        "defineList": [
+          "USE_HAL_DRIVER",
+          "STM32L431xx"
+        ]
+      }
+    }
+  },
+  "version": "3.3"
 }

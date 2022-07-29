@@ -7,9 +7,12 @@
             "request": "launch",
             "name": "openocd",
             "servertype": "openocd",
-            "executable": "..\\build\\MDK-ARM\\template\\MDK-ARM.elf",
+            "executable": "..\\build\\MDK-ARM\\template\\template.elf",
             "runToEntryPoint": "main",
-            "configFiles": []
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/stm32f4x.cfg"
+            ]
         }
     ]
 }

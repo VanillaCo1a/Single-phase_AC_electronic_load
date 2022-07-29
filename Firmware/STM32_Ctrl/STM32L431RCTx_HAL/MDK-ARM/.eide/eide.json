@@ -1,73 +1,10 @@
 {
   "name": "MDK-ARM",
   "type": "ARM",
-  "mode": "template",
-  "toolchain": "AC6",
-  "dependenceList": [
-    {
-      "groupName": "custom",
-      "depList": [
-        {
-          "name": "default",
-          "sourceDirList": [],
-          "libList": [],
-          "incList": [
-            "./../Core/Inc",
-            "./../Drivers/STM32L4xx_HAL_Driver/Inc",
-            "./../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy",
-            "./../Drivers/CMSIS/Device/ST/STM32L4xx/Include",
-            "./../Drivers/CMSIS/Include",
-            "./../../CodeMultiPlatform",
-            "./../../CodeMultiPlatform/device",
-            "./../../CodeMultiPlatform/oledlib",
-            "./../Project",
-            "./RTE/_template"
-          ],
-          "defineList": [
-            "USE_HAL_DRIVER",
-            "STM32L431xx"
-          ]
-        }
-      ]
-    }
-  ],
-  "compileConfig": {
-    "cpuType": "Cortex-M4",
-    "floatingPointHardware": "single",
-    "useCustomScatterFile": false,
-    "scatterFilePath": "undefined",
-    "storageLayout": {
-      "RAM": [
-        {
-          "tag": "IRAM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x20000000",
-            "size": "0x5000"
-          },
-          "isChecked": true,
-          "noInit": false
-        }
-      ],
-      "ROM": [
-        {
-          "tag": "IROM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x08000000",
-            "size": "0x10000"
-          },
-          "isChecked": true,
-          "isStartup": true
-        }
-      ]
-    },
-    "options": "null"
-  },
-  "uploader": "OpenOCD",
+  "dependenceList": [],
   "srcDirs": [
-    "./.eide/deps",
-    "./../../CodeMultiPlatform"
+    ".eide/deps",
+    "../../CodeMultiPlatform"
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
@@ -248,22 +185,16 @@
       }
     ]
   },
-  "excludeList": [],
   "outDir": "..\\build\\MDK-ARM",
   "deviceName": null,
   "packDir": null,
-  "uploadConfig": {
-    "bin": "",
-    "target": "stm32l4x",
-    "interface": "cmsis-dap",
-    "baseAddr": "0x08000000"
-  },
-  "uploadConfigMap": {},
   "miscInfo": {
     "uid": "5da5e05ae766c4aabea82183412f8b3a"
   },
   "targets": {
     "template": {
+      "excludeList": [],
+      "toolchain": "AC6",
       "compileConfig": {
         "cpuType": "Cortex-M4",
         "floatingPointHardware": "single",
@@ -272,41 +203,11 @@
         "storageLayout": {
           "RAM": [
             {
-              "tag": "RAM",
-              "id": 1,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "noInit": false
-            },
-            {
-              "tag": "RAM",
-              "id": 2,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "noInit": false
-            },
-            {
-              "tag": "RAM",
-              "id": 3,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "noInit": false
-            },
-            {
               "tag": "IRAM",
               "id": 1,
               "mem": {
                 "startAddr": "0x20000000",
-                "size": "0xc000"
+                "size": "0xC000"
               },
               "isChecked": true,
               "noInit": false
@@ -324,54 +225,14 @@
           ],
           "ROM": [
             {
-              "tag": "ROM",
-              "id": 1,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "isStartup": false
-            },
-            {
-              "tag": "ROM",
-              "id": 2,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "isStartup": false
-            },
-            {
-              "tag": "ROM",
-              "id": 3,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "isStartup": false
-            },
-            {
               "tag": "IROM",
               "id": 1,
               "mem": {
-                "startAddr": "0x8000000",
+                "startAddr": "0x08000000",
                 "size": "0x40000"
               },
               "isChecked": true,
               "isStartup": true
-            },
-            {
-              "tag": "IROM",
-              "id": 2,
-              "mem": {
-                "startAddr": "0x0",
-                "size": "0x0"
-              },
-              "isChecked": false,
-              "isStartup": false
             }
           ]
         },
@@ -385,11 +246,8 @@
         "baseAddr": "0x08000000"
       },
       "uploadConfigMap": {},
-      "toolchain": "AC6",
       "custom_dep": {
         "name": "default",
-        "sourceDirList": [],
-        "libList": [],
         "incList": [
           "../Core/Inc",
           "../Drivers/STM32L4xx_HAL_Driver/Inc",
@@ -402,13 +260,14 @@
           "../Project",
           "RTE/_template"
         ],
+        "libList": [],
+        "sourceDirList": [],
         "defineList": [
           "USE_HAL_DRIVER",
           "STM32L431xx"
         ]
-      },
-      "excludeList": []
+      }
     }
   },
-  "version": "3.1"
+  "version": "3.3"
 }

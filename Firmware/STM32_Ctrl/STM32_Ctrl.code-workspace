@@ -39,7 +39,14 @@
 			"stm32l4xx_hal.h": "c",
 			"inverter.h": "c",
 			"mytask.h": "c",
-			"myhlw8032.h": "c"
+			"myhlw8032.h": "c",
+			"device_timer.h": "c",
+			"protocol.h": "c",
+			"device_protocol.h": "c",
+			"stdint.h": "c",
+			"stdarg.h": "c",
+			"stdbool.h": "c",
+			"oled_buffer.h": "c"
 		}
 	}
 }
