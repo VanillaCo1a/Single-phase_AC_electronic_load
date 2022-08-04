@@ -40,9 +40,9 @@
 /* 通信使用宏定义 */
 #define DEVI2C_SOFTWARE_ENABLED
 #define DEVSPI_SOFTWARE_ENABLED
-#define DEVOWRE_SOFTWARE_ENABLED
-#define DEVUART_SOFTWARE_ENABLED
-// #define DEVI2C_HARDWARE_ENABLED
+// #define DEVOWRE_SOFTWARE_ENABLED
+// #define DEVUART_SOFTWARE_ENABLED
+#define DEVI2C_HARDWARE_ENABLED
 #define DEVSPI_HARDWARE_ENABLED
 // #define DEVOWRE_HARDWARE_ENABLED
 #define DEVUART_HARDWARE_ENABLED
@@ -56,7 +56,5 @@
 #define DEVBUSYLIST_MAXNUM 20     //忙设备列表大小
 typedef uint16_t poolsize;        //池大小的数据类型
 #endif
-
-void TIMER_Task(void);
 
 #endif // !__MYDEVICE_H

@@ -2,7 +2,7 @@
 
 /* 设备参数配置 */
 static UART_ModuleHandleTypeDef msuart[UART_NUM] = {
-    {.receive = {.state = 0}, .transmit = {.state = 1}, .usedma = 1},
+    {.receive = {.state = 0}, .transmit = {.state = 1}, .usedma = 0},
     {.receive = {.state = 0}, .transmit = {.state = 1}, .usedma = 0}};
 static DEVCMNI_TypeDef uart_cmni[UART_NUM] = {
     {.protocol = USART, .ware = HARDWARE, .modular = &msuart[0],

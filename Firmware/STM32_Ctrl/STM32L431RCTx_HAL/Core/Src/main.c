@@ -103,10 +103,9 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
-  INVERTER_Init();
-  extern uint16_t inverterNum;
   int32_t i = 0;
   volatile float fps1 = 0, fps3 = 0;
+  INVERTER_Init();
 
   /* USER CODE END 2 */
 
@@ -118,9 +117,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     DEBUG_SYSTEM_Task();
-    HLW8032_OLED_Task(inverterNum);
+    HLW8032_OLED_Task(i);
 
-    i = i==100000 ? 0 : i+1;
+    i = i==100000000 ? 0 : i+1;
   }
   /* USER CODE END 3 */
 }

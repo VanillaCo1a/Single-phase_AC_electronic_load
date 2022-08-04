@@ -32,9 +32,10 @@ void DEBUG_SYSTEM_Task(void) {
     }
 
     DEV_setActStream(&myuarts, 0);
-    while(DEV_getActState() == idle) {
+    if(DEV_getActState() == idle) {
         /* 串口回显 */
         if(UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf))) {
+            UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf));
             UART1_PrintString((char *)my_uart_buf);
         }
 
@@ -43,7 +44,7 @@ void DEBUG_SYSTEM_Task(void) {
     }
 
     DEV_setActStream(&myoleds, 0);
-    while(DEV_getActState() == idle) {
+    if(DEV_getActState() == idle) {
         /* oled显示 */
         TIMER_tick();
         // OLED_Error();
@@ -55,8 +56,26 @@ void DEBUG_SYSTEM_Task(void) {
 }
 
 void HLW8032_OLED_Task(int32_t i) {
+    extern uint16_t inverterNum;
     int8_t oled_mode = 0;
     HLW8032_ResTypedef *pfcres = HLW8032_GetResult();
+
+    /* 显示循环次数 */
+    switch(oled_mode) {
+    case 0:
+        OLED_clearBuffer();
+        OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", i);
+        break;
+    case 1:
+        OLED_clearBuffer();
+        OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", i);
+        break;
+    case 2:
+        break;
+
+    default:
+        break;
+    }
 
     /* 获取8032数据 */
     if(HLW8032_Ctrl()) {
@@ -71,23 +90,20 @@ void HLW8032_OLED_Task(int32_t i) {
 
         /*  更新显存 */
         if(delayus_Timer_paral(100)) {
-            
-            /* 显示循环次数 */
-            OLED_clearBuffer();
-            OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", i);
-            
             /* 显示PFC测量数据 */
             switch(oled_mode) {
             case 0:
-                OLED_clearBuffer();
-                SetFontSize(2);
-                OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "V=%7.3lfV", pfcres->voltage / DEC_BIT);
-                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "I=%7.3lfA", pfcres->currentIntensity / DEC_BIT);
-                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW", pfcres->power / DEC_BIT);
-                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "PFC=%6.4lf", pfcres->powerFactorer / DEC_BIT);
+                OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", inverterNum);
                 SetFontSize(0);
+                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "V=%4.1lfV  I=%4.1lfA",
+                            pfcres->voltage / DEC_BIT, pfcres->currentIntensity / DEC_BIT);
+                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%4.1lfW  PFC=%3.1lf",
+                            pfcres->power / DEC_BIT, pfcres->powerFactorer / DEC_BIT);
+                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "W=%4.1lfkWh",
+                            pfcres->electricQuantity / DEC_BIT);
                 break;
             case 1:
+                OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "L431RBT6%8d", inverterNum);
                 SetFontSize(1);
                 OLED_Printf(0 + 3 * 8, 0 + 0 * 8, "V=%7.3lfV I=%7.3lfA",
                             pfcres->voltage / DEC_BIT, pfcres->currentIntensity / DEC_BIT);
@@ -98,13 +114,13 @@ void HLW8032_OLED_Task(int32_t i) {
                 SetFontSize(0);
                 break;
             case 2:
+                OLED_clearBuffer();
+                SetFontSize(2);
+                OLED_Printf(0 + 0 * 8, 0 + 0 * 8, "V=%7.3lfV", pfcres->voltage / DEC_BIT);
+                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "I=%7.3lfA", pfcres->currentIntensity / DEC_BIT);
+                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%7.3lfW", pfcres->power / DEC_BIT);
+                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "PFC=%6.4lf", pfcres->powerFactorer / DEC_BIT);
                 SetFontSize(0);
-                OLED_Printf(0 + 2 * 8, 0 + 0 * 8, "V=%4.1lfV  I=%4.1lfA",
-                            pfcres->voltage / DEC_BIT, pfcres->currentIntensity / DEC_BIT);
-                OLED_Printf(0 + 4 * 8, 0 + 0 * 8, "P=%4.1lfW  PFC=%3.1lf",
-                            pfcres->power / DEC_BIT, pfcres->powerFactorer / DEC_BIT);
-                OLED_Printf(0 + 6 * 8, 0 + 0 * 8, "W=%4.1lfkWh",
-                            pfcres->electricQuantity / DEC_BIT);
                 break;
 
             default:
