@@ -17,30 +17,39 @@ static char my_va_buf[VA_BUF_SIZE];
 static uint8_t my_uart_buf[UART_BUF_SIZE];
 
 /* 最小调试系统进程 */
+bool uartReceive = false;
 void DEBUG_SYSTEM_Task(void) {
     if(firstRun) {
         TIMER_Init();
         UART_Init(&myuarts, myuart, lenof(myuart), my_va_buf, lenof(my_va_buf));
         printf("定时器初始化完毕\r\n");
-        delayms_timer(5);
         printf("UART1初始化完毕\r\n");
-        delayms_timer(5);
         printf("UART3初始化完毕\r\n");
         OLED_Init(&myoleds, myoled, lenof(myoled), my_va_buf, lenof(my_va_buf));
         printf("OLED初始化完毕\r\n");
         firstRun = false;
     }
 
+    /* 串口回显 */
     DEV_setActStream(&myuarts, 0);
     if(DEV_getActState() == idle) {
-        /* 串口回显 */
-        if(UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf))) {
-            UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf));
-            UART1_PrintString((char *)my_uart_buf);
+        // 阻塞式，不常使用
+        // fgets((char *)my_uart_buf, lenof(my_uart_buf), stdin);
+        // fputs((char *)my_uart_buf, stdin);
+        if(!uartReceive) {
+            if(UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf))) {
+                UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf));
+                uartReceive = true;
+            }
         }
-
-        /* 置忙500ms */
-        DEV_setActState(25000);
+        if(uartReceive) {
+            if(UART1_PrintString((char *)my_uart_buf)) {
+                UART1_PrintString((char *)my_uart_buf);
+                uartReceive = false;
+                /* 置忙500ms */
+                DEV_setActState(25000);
+            }
+        }
     }
 
     DEV_setActStream(&myoleds, 0);

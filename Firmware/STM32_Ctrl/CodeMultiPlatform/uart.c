@@ -2,7 +2,7 @@
 #include "usart.h"
 
 /***  串口类, 初始化实例的样例如下:
-static UART_ModuleHandleTypeDef msuart[] = {{.receive = {.state = 0}, .transmit = {.state = 1}, .usedma = 0}};
+static UART_ModuleHandleTypeDef msuart[] = {{.usedma = 0}};
 static DEVCMNI_TypeDef uart_cmni[] = {
     {.protocol = USART, .ware = HARDWARE, .modular = &msuart[0],
 #if defined(STM32)
@@ -52,19 +52,19 @@ bool UART_ScanString(int8_t num, char *str, size_t size) {
     }
     return res;
 }
-void UART_PrintArray(int8_t num, const uint8_t arr[], size_t size) {
+bool UART_PrintArray(int8_t num, const uint8_t arr[], size_t size) {
     DEV_setActStream(uarts, num);
-    while(!DEVCMNI_Write((uint8_t *)arr, size, 0xFF)) continue;
+    return DEVCMNI_Write((uint8_t *)arr, size, 0xFF);
 }
-void UART_PrintString(int8_t num, const char *str) {
+bool UART_PrintString(int8_t num, const char *str) {
     DEV_setActStream(uarts, num);
-    while(!DEVCMNI_Write((uint8_t *)str, strlen(str), 0xFF)) continue;
+    return DEVCMNI_Write((uint8_t *)str, strlen(str), 0xFF);
 }
-void UART_Printf(int8_t num, char *str, ...) {
+bool UART_Printf(int8_t num, char *str, ...) {
     va_list args;
     va_start(args, str);
     vsnprintf(va_buf, va_size, (char *)str, args);
     va_end(args);
     DEV_setActStream(uarts, num);
-    UART_PrintString(0, va_buf);
+    return UART_PrintString(0, va_buf);
 }

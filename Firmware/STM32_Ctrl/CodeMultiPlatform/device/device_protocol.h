@@ -36,17 +36,20 @@ typedef enum {
     DEVCMNI_OK = HAL_OK,
     DEVCMNI_ERROR = HAL_ERROR,
     DEVCMNI_BUSY = HAL_BUSY,
-    DEVCMNI_TIMEOUT = HAL_TIMEOUT
+    DEVCMNI_TIMEOUT = HAL_TIMEOUT,
+    DEVCMNI_UPDATE
 #elif defined(STM32FWLIB)
     DEVCMNI_OK = 0,
     DEVCMNI_ERROR,
     DEVCMNI_BUSY,
-    DEVCMNI_TIMEOUT
+    DEVCMNI_TIMEOUT,
+    DEVCMNI_UPDATE
 #else
     DEVCMNI_OK,
     DEVCMNI_ERROR,
     DEVCMNI_BUSY,
-    DEVCMNI_TIMEOUT
+    DEVCMNI_TIMEOUT,
+    DEVCMNI_UPDATE
 #endif
 #endif
 } DEVCMNI_StatusTypeDef;
@@ -111,7 +114,7 @@ typedef struct {
     uint8_t *buf;
     volatile size_t size;
     volatile size_t count;
-    volatile bool state;
+    volatile DEVCMNI_StatusTypeDef state;
 } BufferTypedef;
 typedef struct {
     BufferTypedef receive;

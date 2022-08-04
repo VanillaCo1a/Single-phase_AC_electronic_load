@@ -100,8 +100,8 @@ static void DEVUART_Init(UART_ModuleHandleTypeDef *modular) {
     uartmodular = modular;
 }
 
-static void DEVUART_ReceiveStart(void);
-static void DEVUART_TransmitStart(void);
+static DEVCMNI_StatusTypeDef DEVUART_ReceiveStart(void);
+static DEVCMNI_StatusTypeDef DEVUART_TransmitStart(void);
 static void DEVUART_ReceiveEnd(UART_ModuleHandleTypeDef *muart, size_t count);
 static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart);
 static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus);
@@ -109,36 +109,52 @@ static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus);
 /* 串口接收函数 */
 DEVCMNI_StatusTypeDef DEVUART_Receive(
     UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, size_t *length) {
+    DEVCMNI_StatusTypeDef res = DEVCMNI_BUSY;
     DEVUART_Init(modular);
-    if(!uartmodular->receive.state) {
-        uartmodular->receive.size = size;
-        uartmodular->receive.buf = pdata;
-        if(uartmodular->receive.size != 0 && uartmodular->receive.buf != NULL) {
-            DEVUART_ReceiveStart();
-        }
-    } else {
+    if(uartmodular->receive.state == DEVCMNI_UPDATE) {
         *length = uartmodular->receive.count;
         uartmodular->receive.count = 0;
-        uartmodular->receive.state = false;
-        return DEVCMNI_OK;
+        uartmodular->receive.state = DEVCMNI_OK;
+        res = DEVCMNI_OK;
+        return res;
     }
-    return DEVCMNI_BUSY;
+    if(uartmodular->receive.state == DEVCMNI_OK) {
+        /* TODO: Change to use assert */
+        if(pdata == NULL || size == 0) {
+            return DEVCMNI_BUSY;
+        }
+        uartmodular->receive.buf = pdata;
+        uartmodular->receive.size = size;
+        if (DEVUART_ReceiveStart() == DEVCMNI_OK) {
+            uartmodular->receive.state = DEVCMNI_BUSY;
+        }
+    }
+    return res;
 }
 
 /* 串口发送函数 */
 DEVCMNI_StatusTypeDef DEVUART_Transmit(
     UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size) {
+    DEVCMNI_StatusTypeDef res = DEVCMNI_BUSY;
     DEVUART_Init(modular);
-    if(uartmodular->transmit.state) {
-        uartmodular->transmit.size = size;
-        uartmodular->transmit.buf = pdata;
-        if(uartmodular->transmit.size != 0 && uartmodular->transmit.buf != NULL) {
-            DEVUART_TransmitStart();
-        }
-        uartmodular->transmit.state = false;
-        return DEVCMNI_OK;
+    if(uartmodular->transmit.state == DEVCMNI_UPDATE) {
+        uartmodular->transmit.count = 0;
+        uartmodular->transmit.state = DEVCMNI_OK;
+        res = DEVCMNI_OK;
+        // return res;
     }
-    return DEVCMNI_BUSY;
+    if(uartmodular->transmit.state == DEVCMNI_OK) {
+        /* TODO: Change to use assert */
+        if(pdata == NULL || size == 0) {
+            return DEVCMNI_BUSY;
+        }
+        uartmodular->transmit.buf = pdata;
+        uartmodular->transmit.size = size;
+        if (DEVUART_TransmitStart() == DEVCMNI_OK) {
+            uartmodular->transmit.state = DEVCMNI_BUSY;
+        }
+    }
+    return res;
 }
 
 /* 中断回调函数 */
@@ -188,17 +204,18 @@ void FWLIB_UART_TxCpltCallback(USART_TypeDef *USARTx) {
 
 
 /* 串口开始接收函数, 调用底层库函数 */
-static void DEVUART_ReceiveStart(void) {
+static DEVCMNI_StatusTypeDef DEVUART_ReceiveStart(void) {
+    DEVCMNI_StatusTypeDef res = DEVCMNI_OK;
 #if defined(STM32)
 #if defined(STM32HAL)
 #if defined(HAL_UART_MODULE_ENABLED)
     if(uartmodular->usedma) {
 #if defined(HAL_DMA_MODULE_ENABLED)
-        HAL_UARTEx_ReceiveToIdle_DMA(
+        res = (DEVCMNI_StatusTypeDef)HAL_UARTEx_ReceiveToIdle_DMA(
             uartmodular->bus, uartmodular->receive.buf, uartmodular->receive.size);
 #endif    // HAL_DMA_MODULE_ENABLED
     } else {
-        HAL_UARTEx_ReceiveToIdle_IT(
+        res = (DEVCMNI_StatusTypeDef)HAL_UARTEx_ReceiveToIdle_IT(
             uartmodular->bus, uartmodular->receive.buf, uartmodular->receive.size);
     }
 #endif    // HAL_UART_MODULE_ENABLED
@@ -207,20 +224,22 @@ static void DEVUART_ReceiveStart(void) {
         uartmodular->bus, uartmodular->receive.buf, uartmodular->receive.size);
 #endif
 #endif
+    return res;
 }
 
 /* 串口开始发送函数, 调用底层库函数 */
-static void DEVUART_TransmitStart(void) {
+static DEVCMNI_StatusTypeDef DEVUART_TransmitStart(void) {
+    DEVCMNI_StatusTypeDef res = DEVCMNI_OK;
 #if defined(STM32)
 #if defined(STM32HAL)
 #if defined(HAL_UART_MODULE_ENABLED)
     if(uartmodular->usedma) {
 #if defined(HAL_DMA_MODULE_ENABLED)
-        HAL_UART_Transmit_DMA(
+        res = (DEVCMNI_StatusTypeDef)HAL_UART_Transmit_DMA(
             uartmodular->bus, uartmodular->transmit.buf, uartmodular->transmit.size);
 #endif    // HAL_DMA_MODULE_ENABLED
     } else {
-        HAL_UART_Transmit_IT(
+        res = (DEVCMNI_StatusTypeDef)HAL_UART_Transmit_IT(
             uartmodular->bus, uartmodular->transmit.buf, uartmodular->transmit.size);
     }
 #endif    // HAL_UART_MODULE_ENABLED
@@ -229,17 +248,22 @@ static void DEVUART_TransmitStart(void) {
         uartmodular->bus, uartmodular->transmit.buf, uartmodular->transmit.size);
 #endif
 #endif
+    return res;
 }
 
 /* 串口接收完毕函数, 应放在回调函数中 */
 static void DEVUART_ReceiveEnd(UART_ModuleHandleTypeDef *muart, size_t count) {
-    muart->receive.state = true;
+    muart->receive.buf = NULL;
+    muart->receive.size = 0;
     muart->receive.count = count;
+    muart->receive.state = DEVCMNI_UPDATE;
 }
 
 /* 串口发送完毕函数, 应放在回调函数中 */
 static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart) {
-    muart->transmit.state = true;
+    muart->transmit.buf = NULL;
+    muart->transmit.size = 0;
+    muart->transmit.state = DEVCMNI_UPDATE;
 }
 
 /* 获取串口句柄对应通信句柄 */
@@ -254,4 +278,3 @@ static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus) {
     return NULL;
 }
 #endif    // DEVUART_HARDWARE_ENABLED
-
