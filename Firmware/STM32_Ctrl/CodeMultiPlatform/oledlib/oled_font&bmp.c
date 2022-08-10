@@ -1,13 +1,13 @@
-﻿/***    原作者哔哩哔哩:                            MjGame         https://space.bilibili.com/38673747
-                        同GifHub:                                maoyongjie     https://github.com/hello-myj/stm32_oled/
-                        代码整理注释删减增加优化等 哔哩哔哩:    一只程序缘    https://space.bilibili.com/237304109
-                        整理之前的原代码随本代码一同提供,浏览以上网址获取更多相关信息,本代码以征得原作同意,感谢原作
+﻿/***    原作者哔哩哔哩:                       MjGame         https://space.bilibili.com/38673747
+        同GifHub:                            maoyongjie     https://github.com/hello-myj/stm32_oled/
+        代码整理注释删减增加优化等 哔哩哔哩:    一只程序缘      https://space.bilibili.com/237304109
+        整理之前的原代码随本代码一同提供,浏览以上网址获取更多相关信息,本代码以征得原作同意,感谢原作  ***/
         
-                此c文件用于存储字体及图片取模
-                在oled.draw中被DrawChar()等函数被调用
+/***    此c文件用于存储字体及图片取模
+        在oled.draw中被DrawChar()等函数被调用
                 
-                基础字符字库(取模方式见字库顶部)
-                汉字字库(取模方式见字库顶部)                    ***/
+        基础字符字库(取模方式见字库顶部)
+        汉字字库(取模方式见字库顶部)  ***/
 
 #include "oled_font&bmp.h"
 

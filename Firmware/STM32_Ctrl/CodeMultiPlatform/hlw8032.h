@@ -17,4 +17,4 @@ typedef struct {
 bool HLW8032_Ctrl(void);
 HLW8032_ResTypedef *HLW8032_GetResult(void);
 
-#endif // !__HLW8032_H
+#endif    // !__HLW8032_H

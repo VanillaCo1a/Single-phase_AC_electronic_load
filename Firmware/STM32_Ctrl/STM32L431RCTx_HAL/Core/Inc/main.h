@@ -85,8 +85,8 @@ void Error_Handler(void);
 #define INVERTER_TIM1_CH4_GPIO_Port GPIOA
 #define SPI3_SCK_Pin GPIO_PIN_10
 #define SPI3_SCK_GPIO_Port GPIOC
-#define SPI3_SDA_Pin GPIO_PIN_11
-#define SPI3_SDA_GPIO_Port GPIOC
+#define SPI3_SDI_Pin GPIO_PIN_11
+#define SPI3_SDI_GPIO_Port GPIOC
 #define SPI3_SDO_Pin GPIO_PIN_12
 #define SPI3_SDO_GPIO_Port GPIOC
 #define DIGITAL_POTENTIOMETER_I2C1_SCL_Pin GPIO_PIN_8

@@ -31,8 +31,8 @@ void DEBUG_SYSTEM_Task(void) {
     }
 
     /* 串口回显 */
-    DEV_setActStream(&myuarts, 0);
-    if(DEV_getActState() == idle) {
+    DEV_SetActStream(&myuarts, 0);
+    if(DEV_GetActState() == idle) {
         // 阻塞式，不常使用
         // fgets((char *)my_uart_buf, lenof(my_uart_buf), stdin);
         // fputs((char *)my_uart_buf, stdin);
@@ -45,20 +45,20 @@ void DEBUG_SYSTEM_Task(void) {
             if(UART1_PrintString((char *)my_uart_buf)) {
                 uartReceive = false;
                 /* 置忙500ms */
-                DEV_setActState(25000);
+                DEV_SetActState(25000);
             }
         }
     }
 
-    DEV_setActStream(&myoleds, 0);
-    if(DEV_getActState() == idle) {
+    DEV_SetActStream(&myoleds, 0);
+    if(DEV_GetActState() == idle) {
         /* oled显示 */
         TIMER_tick();
         // OLED_Error();
         OLED_updateScreen();
         fps = TIMER_query();
         /* 置忙10ms */
-        DEV_setActState(500);
+        DEV_SetActState(500);
     }
 }
 

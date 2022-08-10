@@ -62,7 +62,7 @@ typedef enum {
 } DEV_StatusTypeDef;
 
 
-/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF I2C DEVICE COMMUNITCATION  ***/
+/*****   MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF I2C DEVICE COMMUNITCATION   *****/
 typedef enum {
     DEVI2C_SCL,
     DEVI2C_SDA
@@ -89,26 +89,42 @@ typedef enum {
 } DEVI2C_ErrhandTypeDef;
 typedef struct {                      //I2C总线设备结构体
     uint8_t addr;                     //模块I2C地址
-    bool skip;                        //是否需要读/写内部寄存器
+    bool skip;                        //是否跳过读/写内部寄存器
     DEVI2C_SpeedTypeDef speed;        //模块I2C速率
     DEVI2C_ErrhandTypeDef errhand;    //模块的错误处理方式
     void *bus;                        //I2C模拟/硬件总线句柄
 } I2C_ModuleHandleTypeDef;
 
 
-/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF SPI DEVICE COMMUNITCATION  ***/
+/*****   MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF SPI DEVICE COMMUNITCATION   *****/
 typedef enum {
     DEVSPI_FULL_DUPLEX,
     DEVSPI_HALF_DUPLEX
 } DEVSPI_DuplexTypeTypeDef;
 typedef struct {                        //SPI总线模块结构体
-    bool skip;                          //是否需要拉低片选
+    bool skip;                          //是否跳过拉低片选
     DEVSPI_DuplexTypeTypeDef duplex;    //设备工作模式
     void *bus;                          //SPI模拟/硬件总线句柄
 } SPI_ModuleHandleTypeDef;
 
 
-/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF 1-WIRE DEVICE COMMUNITCATION  ***/
+/*****   MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF UART DEVICE COMMUNITCATION   *****/
+typedef struct {
+    uint8_t *buf;
+    volatile size_t size;
+    volatile size_t count;
+    volatile DEVCMNI_StatusTypeDef state;
+} UART_BufferTypedef;
+typedef struct {
+    UART_BufferTypedef receive;
+    UART_BufferTypedef transmit;
+    bool usedma;
+    bool checkidle;
+    void *bus;
+} UART_ModuleHandleTypeDef;
+
+
+/*****   MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF 1-WIRE DEVICE COMMUNITCATION   *****/
 typedef struct {
     uint64_t rom;    //模块64位ROM编码
     bool skip;       //是否跳过ROM匹配
@@ -116,27 +132,11 @@ typedef struct {
 } ONEWIRE_ModuleHandleTypeDef;
 
 
-/***  MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF UART DEVICE COMMUNITCATION  ***/
-typedef struct {
-    uint8_t *buf;
-    volatile size_t size;
-    volatile size_t count;
-    volatile DEVCMNI_StatusTypeDef state;
-} BufferTypedef;
-typedef struct {
-    BufferTypedef receive;
-    BufferTypedef transmit;
-    bool usedma;
-    bool checkidle;
-    void *bus;
-} UART_ModuleHandleTypeDef;
-
-
-/***  SOFTWARE FUNCTION DECLARAION OF I2C/SPI/1-WIRE DEVICE COMMUNITCATION  ***/
+/*****   SOFTWARE FUNCTION DECLARAION OF I2C/SPI/1-WIRE DEVICE COMMUNITCATION   *****/
 void DEVCMNI_SCL_Set(bool dir);
 void DEVCMNI_SDA_OWRE_Set(bool dir);
 void DEVCMNI_SCL_SCK_Out(bool pot);
-void DEVCMNI_SDA_SDI_OWRE_Out(bool pot);
+void DEVCMNI_SDA_SDI_RXD_OWRE_Out(bool pot);
 bool DEVCMNI_SCL_In(void);
 bool DEVCMNI_SDA_OWRE_In(void);
 bool DEVCMNI_SDO_In(void);
@@ -147,7 +147,7 @@ void DEVCMNI_Delayms(uint64_t ms);
 int8_t DEVCMNI_Delayus_paral(uint64_t us);
 
 
-/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF I2C DEVICE COMMUNITCATION  ***/
+/*****   SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF I2C DEVICE COMMUNITCATION   *****/
 #ifdef DEVI2C_SOFTWARE_ENABLED
 typedef struct {          //I2C模拟总线结构体
     bool clockstretch;    //是否启用时钟拉伸
@@ -180,7 +180,7 @@ typedef struct {          //I2C模拟总线结构体
 #define DEVI2C_SCL_Set(dir)      DEVCMNI_SCL_Set(dir)
 #define DEVI2C_SDA_Set(dir)      DEVCMNI_SDA_OWRE_Set(dir)
 #define DEVI2C_SCL_Out(pot)      DEVCMNI_SCL_SCK_Out(pot)
-#define DEVI2C_SDA_Out(pot)      DEVCMNI_SDA_SDI_OWRE_Out(pot)
+#define DEVI2C_SDA_Out(pot)      DEVCMNI_SDA_SDI_RXD_OWRE_Out(pot)
 #define DEVI2C_SCL_In()          DEVCMNI_SCL_In()
 #define DEVI2C_SDA_In()          DEVCMNI_SDA_OWRE_In()
 #define DEVI2C_Error(err)        DEVCMNI_Error(err)
@@ -634,13 +634,13 @@ __attribute__((unused)) static DEV_StatusTypeDef DEVI2C_Transmit(I2C_ModuleHandl
 #endif    // DEVI2C_SOFTWARE_ENABLED
 
 
-/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF SPI DEVICE COMMUNITCATION  ***/
+/*****   SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF SPI DEVICE COMMUNITCATION   *****/
 #ifdef DEVSPI_SOFTWARE_ENABLED
 typedef struct {    //SPI模拟总线结构体
     bool something;
 #ifdef DEVSPI_USEPOINTER
     void (*SCK_Out)(bool);
-    void (*SDI_Out)(bool);
+    void (*SDI_RXD_Out)(bool);
     bool (*SDO_In)();
     void (*CS_Out)(bool);
     void (*error)(int8_t err);
@@ -651,7 +651,7 @@ typedef struct {    //SPI模拟总线结构体
 } SPI_SoftHandleTypeDef;
 #if defined(DEVSPI_USEPOINTER)
 #define DEVSPI_SCK_Out(pot)      ((SPI_SoftHandleTypeDef *)modular->bus)->SCK_Out(pot)
-#define DEVSPI_SDI_Out(pot)      ((SPI_SoftHandleTypeDef *)modular->bus)->SDI_Out(pot)
+#define DEVSPI_SDI_RXD_Out(pot)  ((SPI_SoftHandleTypeDef *)modular->bus)->SDI_RXD_Out(pot)
 #define DEVSPI_SDO_In()          ((SPI_SoftHandleTypeDef *)modular->bus)->SDO_In()
 #define DEVSPI_CS_Out(pot)       ((SPI_SoftHandleTypeDef *)modular->bus)->CS_Out(pot)
 #define DEVSPI_Error(err)        ((SPI_SoftHandleTypeDef *)modular->bus)->error(err)
@@ -660,7 +660,7 @@ typedef struct {    //SPI模拟总线结构体
 #define DEVSPI_Delayus_paral(us) ((SPI_SoftHandleTypeDef *)modular->bus)->delayus_paral(us)
 #else
 #define DEVSPI_SCK_Out(pot)      DEVCMNI_SCL_SCK_Out(pot)
-#define DEVSPI_SDI_Out(pot)      DEVCMNI_SDA_SDI_OWRE_Out(pot)
+#define DEVSPI_SDI_RXD_Out(pot)  DEVCMNI_SDA_SDI_RXD_OWRE_Out(pot)
 #define DEVSPI_SDO_In()          DEVCMNI_SDO_In()
 #define DEVSPI_CS_Out(pot)       DEVCMNI_CS_Out(pot)
 #define DEVSPI_Error(err)        DEVCMNI_Error(err)
@@ -675,7 +675,7 @@ static void DEVSPI_Init(SPI_ModuleHandleTypeDef *modular) {}
 static void DEVSPI_Start(SPI_ModuleHandleTypeDef *modular, int8_t skip) {
     if(!skip) {    //如果能设置片选, 才初始化总线电位, 否则可能写入多余数据
         DEVSPI_CS_Out(HIGH);
-        DEVSPI_SDI_Out(HIGH);
+        DEVSPI_SDI_RXD_Out(HIGH);
         DEVSPI_delayus(DEVSPI_SCLK_LOW_TIME);
         DEVSPI_SCK_Out(LOW);
         DEVSPI_CS_Out(LOW);    //拉低片选
@@ -684,14 +684,14 @@ static void DEVSPI_Start(SPI_ModuleHandleTypeDef *modular, int8_t skip) {
 static void DEVSPI_Stop(SPI_ModuleHandleTypeDef *modular, int8_t skip) {
     if(!skip) {
         DEVSPI_CS_Out(HIGH);    //拉高片选
-        DEVSPI_SDI_Out(HIGH);
+        DEVSPI_SDI_RXD_Out(HIGH);
         DEVSPI_delayus(DEVSPI_SCLK_HIGH_TIME);
         DEVSPI_SCK_Out(HIGH);
         DEVSPI_delayus(DEVSPI_SCLK_HIGH_TIME);
     }
 }
 static inline void DEVSPI_WriteBit(SPI_ModuleHandleTypeDef *modular, bool bit) {
-    DEVSPI_SDI_Out(bit);
+    DEVSPI_SDI_RXD_Out(bit);
     DEVSPI_delayus(DEVSPI_SCLK_LOW_TIME);
     DEVSPI_SCK_Out(HIGH);
     DEVSPI_delayus(DEVSPI_SCLK_HIGH_TIME);
@@ -707,7 +707,7 @@ static inline bool DEVSPI_ReadBit(SPI_ModuleHandleTypeDef *modular) {
     return bit;
 }
 static inline bool DEVSPI_TransmitBit(SPI_ModuleHandleTypeDef *modular, bool bit) {
-    DEVSPI_SDI_Out(bit);
+    DEVSPI_SDI_RXD_Out(bit);
     DEVSPI_delayus(DEVSPI_SCLK_LOW_TIME);
     DEVSPI_SCK_Out(HIGH);
     DEVSPI_delayus(DEVSPI_SCLK_HIGH_TIME);
@@ -760,7 +760,7 @@ __attribute__((unused)) static DEV_StatusTypeDef DEVSPI_Transmit(SPI_ModuleHandl
     return DEV_OK;
 }
 #undef DEVSPI_SCK_Out
-#undef DEVSPI_SDI_Out
+#undef DEVSPI_SDI_RXD_Out
 #undef DEVSPI_SDO_In
 #undef DEVSPI_CS_Out
 #undef DEVSPI_Error
@@ -771,7 +771,13 @@ __attribute__((unused)) static DEV_StatusTypeDef DEVSPI_Transmit(SPI_ModuleHandl
 #endif    // DEVSPI_SOFTWARE_ENABLED
 
 
-/***  SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF 1-WIRE DEVICE COMMUNITCATION  ***/
+/*****   SOFTWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION   *****/
+#ifdef DEVUART_SOFTWARE_ENABLED
+
+#endif    // DEVUART_SOFTWARE_ENABLED
+
+
+/*****   SOFTWARE STRUCTURE DEFINITION & FUNCTION IMPLEMENTATION OF 1-WIRE DEVICE COMMUNITCATION   *****/
 #ifdef DEVOWRE_SOFTWARE_ENABLED
 typedef struct {           //ONEWIRE模拟总线结构体
     uint64_t num;          //总线上的设备数量
@@ -796,7 +802,7 @@ typedef struct {           //ONEWIRE模拟总线结构体
 #define DEVOWRE_Delayus_paral(us) ((ONEWIRE_SoftHandleTypeDef *)modular->bus)->delayus_paral(us)
 #else
 #define DEVOWRE_OWIO_Set(pot)     DEVCMNI_SDA_OWRE_Set(pot)
-#define DEVOWRE_OWIO_Out(pot)     DEVCMNI_SDA_SDI_OWRE_Out(pot)
+#define DEVOWRE_OWIO_Out(pot)     DEVCMNI_SDA_SDI_RXD_OWRE_Out(pot)
 #define DEVOWRE_OWIO_In(pot)      DEVCMNI_SDA_OWRE_In(pot)
 #define DEVOWRE_Error(err)        DEVCMNI_Error(err)
 #define DEVOWRE_delayus(us)       ({if(us) {DEVCMNI_Delayus(us);} })
@@ -955,13 +961,7 @@ __attribute__((unused)) static DEV_StatusTypeDef DEVONEWIRE_Read(ONEWIRE_ModuleH
 #endif    // DEVOWRE_SOFTWARE_ENABLED
 
 
-/***  SOFTWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION  ***/
-#ifdef DEVUART_SOFTWARE_ENABLED
-
-#endif    // DEVUART_SOFTWARE_ENABLED
-
-
-/***  HARDWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION   *****/
 #if defined(DEVI2C_HARDWARE_ENABLED)
 #include "i2c.h"
 DEV_StatusTypeDef DEVI2C_Transmit_H(I2C_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, uint8_t address, bool rw, uint32_t timeout);
@@ -969,7 +969,7 @@ DEV_StatusTypeDef DEVI2C_Transmit_H(I2C_ModuleHandleTypeDef *modular, uint8_t *p
 #endif    // DEVI2C_HARDWARE_ENABLED
 
 
-/***  HARDWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION   *****/
 #if defined(DEVSPI_HARDWARE_ENABLED)
 #include "spi.h"
 DEV_StatusTypeDef DEVSPI_Transmit_H(SPI_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, bool rw, uint32_t timeout);
@@ -977,14 +977,7 @@ DEV_StatusTypeDef DEVSPI_Transmit_H(SPI_ModuleHandleTypeDef *modular, uint8_t *p
 #endif    // DEVSPI_HARDWARE_ENABLED
 
 
-/***  HARDWARE IMPLEMENTATION FUNCTION OF 1-WIRE DEVICE COMMUNITCATION  ***/
-#if defined(DEVOWRE_HARDWARE_ENABLED)
-#include "onewire.h"
-
-#endif    // DEVOWRE_HARDWARE_ENABLED
-
-
-/***  HARDWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION   *****/
 #if defined(DEVUART_HARDWARE_ENABLED)
 #include "usart.h"
 /* 串口接收函数 */
@@ -993,5 +986,12 @@ DEV_StatusTypeDef DEVUART_Receive(UART_ModuleHandleTypeDef *modular, uint8_t *pd
 DEV_StatusTypeDef DEVUART_Transmit(UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size);
 
 #endif    // DEVUART_HARDWARE_ENABLED
+
+
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF 1-WIRE DEVICE COMMUNITCATION   *****/
+#if defined(DEVOWRE_HARDWARE_ENABLED)
+#include "onewire.h"
+
+#endif    // DEVOWRE_HARDWARE_ENABLED
 
 #endif    // !__DEVICE_PROTOCOL_H

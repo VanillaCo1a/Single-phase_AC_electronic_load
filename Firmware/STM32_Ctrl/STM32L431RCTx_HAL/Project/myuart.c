@@ -55,28 +55,28 @@ bool UART3_ScanArray(uint8_t arr[], size_t size, size_t *length) {
 
 /* printf&scanf重定向 */
 int fputc(int ch, FILE *f) {
-    DEVS_TypeDef *devs = DEV_getActDevs();
-    poolsize dev = DEV_getActStream();
-    DEV_setActStream(&myuarts, 0);
+    DEVS_TypeDef *devs = DEV_GetActDevs();
+    poolsize dev = DEV_GetActStream();
+    DEV_SetActStream(&myuarts, 0);
     while(DEVCMNI_Write((uint8_t *)&ch, 1, 0xFF) != DEV_OK) continue;
-    DEV_setActStream(devs, dev);
+    DEV_SetActStream(devs, dev);
     return ch;
 }
 int _write(int fd, char *pBuffer, int size) {
-    DEVS_TypeDef *devs = DEV_getActDevs();
-    poolsize dev = DEV_getActStream();
-    DEV_setActStream(&myuarts, 0);
+    DEVS_TypeDef *devs = DEV_GetActDevs();
+    poolsize dev = DEV_GetActStream();
+    DEV_SetActStream(&myuarts, 0);
     while(DEVCMNI_Write((uint8_t *)pBuffer, size, 0xFF) != DEV_OK) continue;
-    DEV_setActStream(devs, dev);
+    DEV_SetActStream(devs, dev);
     return size;
 }
-int fgetc(FILE*f) {
+int fgetc(FILE *f) {
     int ch;
     size_t length;
-    DEVS_TypeDef *devs = DEV_getActDevs();
-    poolsize dev = DEV_getActStream();
-    DEV_setActStream(&myuarts, 0);
+    DEVS_TypeDef *devs = DEV_GetActDevs();
+    poolsize dev = DEV_GetActStream();
+    DEV_SetActStream(&myuarts, 0);
     while(DEVCMNI_Read((uint8_t *)&ch, 1, &length, 0xFF) != DEV_OK) continue;
-    DEV_setActStream(devs, dev);
-	return ch;
+    DEV_SetActStream(devs, dev);
+    return ch;
 }

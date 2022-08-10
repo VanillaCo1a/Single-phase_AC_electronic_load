@@ -8,7 +8,7 @@ uint64_t TIMER_query(void) {
     return TIMER_getRunTimeus() - _time;
 }
 float TIMER_fps(void) {
-    return 1000000.0/(TIMER_getRunTimeus() - _time);
+    return 1000000.0 / (TIMER_getRunTimeus() - _time);
 }
 
 
@@ -24,7 +24,7 @@ uint32_t TIMER_getRunTimes(void) {
 }
 
 
-/***    第一次调用函数时开始计时, 后续调用时返回比较结果, 延时未结束返回0, 结束则返回1
+/***  第一次调用函数时开始计时, 后续调用时返回比较结果, 延时未结束返回0, 结束则返回1
 注意: 每个延时函数需要定义单独的静态参数供函数使用, 内存开销较大,
 考虑过减小*compare的大小, 但是经过考虑决定节省在取余和除法上的3us开销, 尽可能地提高精度
 

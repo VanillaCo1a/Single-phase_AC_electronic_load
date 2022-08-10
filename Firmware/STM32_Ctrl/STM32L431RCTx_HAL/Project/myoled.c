@@ -10,13 +10,13 @@ static OLED_PARTypeDef oled_parameter[OLED_NUM] = {
 static OLED_IOTypeDef oled_io[OLED_NUM] = {
 #if defined(STM32HAL)
     {{.SCL_SCK = {BOARD_OLED_SPI2_SCK_GPIO_Port, BOARD_OLED_SPI2_SCK_Pin},
-      .SDA_SDI_OWRE = {BOARD_OLED_SPI2_SDI_GPIO_Port, BOARD_OLED_SPI2_SDI_Pin},
+      .SDA_SDO_TXD_OWRE = {BOARD_OLED_SPI2_SDO_GPIO_Port, BOARD_OLED_SPI2_SDO_Pin},
       .CS = {BOARD_OLED_CS_GPIO_Port, BOARD_OLED_CS_Pin}},
      .DC = {BOARD_OLED_DC_GPIO_Port, BOARD_OLED_DC_Pin},
      .RST = {NULL, 0x00}},
 #elif defined(STM32FWLIBF1)
     {{.SCL_SCK = {RCC_APB2Periph_GPIOB, GPIOB, GPIO_Pin_12},
-      .SDA_SDI_OWRE = {RCC_APB2Periph_GPIOB, GPIOB, GPIO_Pin_13}}},
+      .SDA_SDO_TXD_OWRE = {RCC_APB2Periph_GPIOB, GPIOB, GPIO_Pin_13}}},
 #endif
 };
 /* OLED通信配置 */

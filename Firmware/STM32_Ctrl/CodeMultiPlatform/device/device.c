@@ -1,6 +1,15 @@
 #include "device.h"
 
-/////////////////////////    设备流控制部分    /////////////////////////
+/*****   局部函数   *****/
+static bool isDevNull(DEV_TypeDef *dev);
+static bool isDevsNull(DEVS_TypeDef *devs, DEV_TypeDef dev[]);
+static inline bool isDevIoNull(DEVIO_TypeDef *devio);
+static bool isDevCmniNull(DEVCMNI_TypeDef *devcmni);
+static bool isDevCmniBusNull(DEVCMNI_TypeDef *devcmni);
+static bool isDevCmniIoNull(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio);
+static bool initDevPool(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size);
+
+/*****   设备流控制部分   *****/
 static poolsize _devSize = 0;
 static DEV_TypeDef *_devPool[DEVPOOL_MAXNUM] = {0};
 static uint64_t _devBusyList[DEVBUSYLIST_MAXNUM] = {0};    //忙设备表, 0为空, 非0为设备置忙时刻(us)
@@ -9,12 +18,13 @@ static DEVS_TypeDef *_actDevs = NULL;
 static DEV_TypeDef *_actDev = NULL;
 static DEVIO_TypeDef *_actDevIo = NULL;
 static DEVCMNI_TypeDef *_actDevCmni = NULL;
+
 /**
  * @description: 活动设备类设置: 设置活动设备类, 设备流根据活动设备类切换
  * @param {DEVS_TypeDef} *self
  * @return {*}
  */
-int8_t DEV_setActDevs(DEVS_TypeDef *self) {
+int8_t DEV_SetActDevs(DEVS_TypeDef *self) {
     if(self == NULL) {
         return 1;
     }
@@ -29,7 +39,7 @@ int8_t DEV_setActDevs(DEVS_TypeDef *self) {
  * @param {*}
  * @return {*}_actDevs
  */
-DEVS_TypeDef *DEV_getActDevs(void) {
+DEVS_TypeDef *DEV_GetActDevs(void) {
     return _actDevs;
 }
 /**
@@ -38,7 +48,7 @@ DEVS_TypeDef *DEV_getActDevs(void) {
  * @param {poolsize} stream
  * @return {*}
  */
-int8_t DEV_setActStream(DEVS_TypeDef *self, poolsize stream) {
+int8_t DEV_SetActStream(DEVS_TypeDef *self, poolsize stream) {
     if(self == NULL || stream > _devSize || stream > self->size) {
         return 1;
     }
@@ -54,7 +64,7 @@ int8_t DEV_setActStream(DEVS_TypeDef *self, poolsize stream) {
  * @param {*}
  * @return {*}_actDevs->stream
  */
-inline poolsize DEV_getActStream(void) {
+inline poolsize DEV_GetActStream(void) {
     return _actDevs->stream;
 }
 /**
@@ -62,16 +72,16 @@ inline poolsize DEV_getActStream(void) {
  * @param {*}
  * @return {*}
  */
-inline DEV_TypeDef *DEV_getActDev(void) {
+inline DEV_TypeDef *DEV_GetActDev(void) {
     return _actDev;
 }
-inline DEVIO_TypeDef *DEV_getActDevIo(void) {
+inline DEVIO_TypeDef *DEV_GetActDevIo(void) {
     return _actDevIo;
 }
-inline DEVCMNI_TypeDef *DEV_getActDevCmni(void) {
+inline DEVCMNI_TypeDef *DEV_GetActDevCmni(void) {
     return _actDevCmni;
 }
-inline DEVCMNIIO_TypeDef *DEV_getActDevCmniIo(void) {
+inline DEVCMNIIO_TypeDef *DEV_GetActDevCmniIo(void) {
     return (DEVCMNIIO_TypeDef *)_actDevIo;
 }
 /**
@@ -79,7 +89,7 @@ inline DEVCMNIIO_TypeDef *DEV_getActDevCmniIo(void) {
  * @param {*}
  * @return {*}
  */
-void DEV_closeActStream(void) {
+void DEV_CloseActStream(void) {
     _actDev = NULL;
     _actDevs = NULL;
     _actDevIo = NULL;
@@ -91,7 +101,7 @@ void DEV_closeActStream(void) {
  * @param {poolsize} stream
  * @return {*}
  */
-int8_t DEV_setStream(DEVS_TypeDef *self, poolsize stream) {
+int8_t DEV_SetStream(DEVS_TypeDef *self, poolsize stream) {
     if(self == NULL || stream > _devSize || stream > self->size) {
         return 1;
     }
@@ -103,7 +113,7 @@ int8_t DEV_setStream(DEVS_TypeDef *self, poolsize stream) {
  * @param {DEVS_TypeDef} *self
  * @return {*}
  */
-DEV_TypeDef *DEV_getStream(DEVS_TypeDef *self) {
+DEV_TypeDef *DEV_GetStream(DEVS_TypeDef *self) {
     if(self == NULL) {
         return NULL;
     }
@@ -115,7 +125,7 @@ DEV_TypeDef *DEV_getStream(DEVS_TypeDef *self) {
  * @param {uint16_t} twus
  * @return {*}
  */
-int8_t DEV_setActState(uint16_t twus) {
+int8_t DEV_SetActState(uint16_t twus) {
     if(twus > 0 && _actDev->state == 0) {                     //设置设备状态为忙
         for(poolsize i = 0; i < DEVBUSYLIST_MAXNUM; i++) {    //遍历设备表寻找空位
             if(_devBusyList[i] == 0) {
@@ -140,51 +150,12 @@ int8_t DEV_setActState(uint16_t twus) {
  * @param {DEVS_TypeDef} *self
  * @return {*}
  */
-DEV_StateTypeDef DEV_getActState(void) {
+DEV_StateTypeDef DEV_GetActState(void) {
     if(_actDev->state > 0 && TIMER_getRunTimeus() > _devBusyList[_actDev->state - 1]) {
         _devBusyList[_actDev->state - 1] = 0;    //设备忙指定时间后转为空闲状态
         _actDev->state = 0;
     }
     return _actDev->state == 0 ? idle : busy;
-}
-bool DEV_isNull(DEV_TypeDef *dev) {
-    if(dev == NULL || dev == NULL) {
-        return true;
-    }
-    return false;
-}
-bool DEVS_isNull(DEVS_TypeDef *devs, DEV_TypeDef dev[]) {
-    if(devs == NULL) {
-        return true;
-    }
-    for(poolsize i = 0; i < devs->size; i++) {
-        if(DEV_isNull(&dev[i])) {
-            return true;
-        }
-    }
-    return false;
-}
-/**
- * @description: 初始化一个设备类, 从设备池中分配空闲指针指向设备数组, 并将序号更新至设备类句柄中
- * @param {DEVS_TypeDef} *devs
- * @param {DEV_TypeDef} dev
- * @param {poolsize} num
- * @return {*}
- */
-bool DEVPOOL_init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size) {
-    if(devs->type == DEVUNDEF || _devSize + size >= DEVPOOL_MAXNUM) {
-        return true;    //申请失败
-    }
-    devs->stream = 0;
-    devs->pool = _devSize;
-    devs->size += size;
-    _devSize += size;
-    for(poolsize i = 0; i < size; i++) {
-        dev[i].state = 0;
-        dev[i].error = 0;
-        _devPool[devs->pool + i] = &dev[i];
-    }
-    return false;
 }
 /**
  * @description: 对某一设备类批量进行某一操作
@@ -192,34 +163,16 @@ bool DEVPOOL_init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size) {
  * @param {void(*)()} *action
  * @return {*}
  */
-void DEV_doAction(DEVS_TypeDef *devs, void (*action)(void)) {
+void DEV_DoAction(DEVS_TypeDef *devs, void (*action)(void)) {
     for(poolsize i = 0; i < devs->size; i++) {
-        DEV_setActStream(devs, i);
+        DEV_SetActStream(devs, i);
         action();
     }
-    DEV_closeActStream();
+    DEV_CloseActStream();
 }
 
 
-/////////////////////////    设备IO部分    /////////////////////////
-inline bool DEVIO_isNull(DEVIO_TypeDef *devio) {
-    //todo: 模仿hal库, 改为使用assert_param进行有效性判断
-#if defined(STM32)
-    if(devio->GPIOx == NULL) {
-        return true;
-    }
-#if defined(USE_LLLIB) && defined(USE_FULL_LL_DRIVER)
-    if(devio->GPIO_Pin == (uint16_t)0x0000) {
-        return true;
-    }
-#else
-    if(devio->GPIO_Pin == (uint32_t)0x00000000) {
-        return true;
-    }
-#endif
-#endif
-    return false;
-}
+/*****   设备IO部分   *****/
 void DEVIO_Init(DEVIO_TypeDef *devio) {
     /* devio Clock Init */
 #if defined(STM32)
@@ -312,7 +265,7 @@ inline void DEVIO_ResetPin(DEVIO_TypeDef *devio) {
 #if defined(USE_LLLIB) && defined(USE_FULL_LL_DRIVER)
     LL_GPIO_ResetOutputPin(devio->GPIOx, devio->GPIO_Pin);
 #elif defined(USE_REGISTER)
-    devio->GPIOx->BSRR = (uint32_t)devio->GPIO_Pin << 16U;
+    devio->GPIOx->BSRR = (uint32_t)(devio->GPIO_Pin << 16U);
 #else
     HAL_GPIO_WritePin(devio->GPIOx, devio->GPIO_Pin, GPIO_PIN_RESET);
 #endif
@@ -334,7 +287,7 @@ inline void DEVIO_WritePin(DEVIO_TypeDef *devio, DEVIO_PinState pinstate) {
     else
         LL_GPIO_ResetOutputPin(devio->GPIOx, devio->GPIO_Pin);
 #elif defined(USE_REGISTER)
-    devio->GPIOx->BSRR = (uint32_t)devio->GPIO_Pin << (!pinstate << 4);
+    devio->GPIOx->BSRR = (uint32_t)(devio->GPIO_Pin << (!pinstate << 4));
     //#define BitBand(Addr, Bit) *((volatile int *)(((int)(Addr)&0x60000000) + 0x02000000 + (int)(Addr)*0x20 + (Bit)*4))
     //BitBand(&devio->GPIOx->ODR, pinstate == OLED0_SCK_Pin ? 13 : 15) = pinstate;
 #else
@@ -373,27 +326,27 @@ inline DEVIO_PinState DEVIO_ReadPin(DEVIO_TypeDef *devio) {
 }
 
 
-/////////////////////////    设备通信部分    /////////////////////////
+/*****   设备通信部分   *****/
 //    模拟通信的方法绑定
 __inline void DEVCMNI_SCL_Set(bool dir) {}
 __inline void DEVCMNI_SDA_OWRE_Set(bool dir) {}
 __inline void DEVCMNI_SCL_SCK_Out(bool pot) {
-    DEVIO_WritePin(&DEV_getActDevCmniIo()->SCL_SCK, (DEVIO_PinState)pot);
+    DEVIO_WritePin(&DEV_GetActDevCmniIo()->SCL_SCK, (DEVIO_PinState)pot);
 }
-__inline void DEVCMNI_SDA_SDI_OWRE_Out(bool pot) {
-    DEVIO_WritePin(&DEV_getActDevCmniIo()->SDA_SDI_OWRE, (DEVIO_PinState)pot);
+__inline void DEVCMNI_SDA_SDI_RXD_OWRE_Out(bool pot) {
+    DEVIO_WritePin(&DEV_GetActDevCmniIo()->SDA_SDO_TXD_OWRE, (DEVIO_PinState)pot);
 }
 __inline bool DEVCMNI_SCL_In(void) {
-    return DEVIO_ReadPin(&DEV_getActDevCmniIo()->SCL_SCK);
+    return DEVIO_ReadPin(&DEV_GetActDevCmniIo()->SCL_SCK);
 }
 __inline bool DEVCMNI_SDA_OWRE_In(void) {
-    return DEVIO_ReadPin(&DEV_getActDevCmniIo()->SDA_SDI_OWRE);
+    return DEVIO_ReadPin(&DEV_GetActDevCmniIo()->SDA_SDO_TXD_OWRE);
 }
 __inline bool DEVCMNI_SDO_In(void) {
-    return DEVIO_ReadPin(&DEV_getActDevCmniIo()->SDO);
+    return DEVIO_ReadPin(&DEV_GetActDevCmniIo()->SDI_RXD);
 }
 __inline void DEVCMNI_CS_Out(bool pot) {
-    DEVIO_WritePin(&DEV_getActDevCmniIo()->CS, (DEVIO_PinState)pot);
+    DEVIO_WritePin(&DEV_GetActDevCmniIo()->CS, (DEVIO_PinState)pot);
 }
 void DEVCMNI_Error(int8_t err) {
     DEV_Error(_actDevs->type << 8 | err);
@@ -437,54 +390,6 @@ int8_t DEVCMNI_Delayus_paral(uint64_t us) {
     return 1;
 }
 
-bool DEVCMNI_isNull(DEVCMNI_TypeDef *devcmni) {
-    if(devcmni->protocol == 0 || devcmni->ware == 0) {    //若设备通信配置未正确配置, 则返回
-        return true;
-    }
-    if(devcmni->modular == NULL) {    //若设备句柄为空, 则返回
-        return true;
-    }
-    return false;
-}
-bool DEVCMNIBUS_isNull(DEVCMNI_TypeDef *devcmni) {
-    if(devcmni->bus == NULL) {    //若总线句柄两处均为空, 则返回
-        if(devcmni->protocol == I2C) {
-            if(((I2C_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        } else if(devcmni->protocol == SPI) {
-            if(((SPI_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        } else if(devcmni->protocol == ONEWIRE) {
-            if(((ONEWIRE_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        } else if(devcmni->protocol == USART) {
-            if(((UART_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-bool DEVCMNIIO_isNull(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
-    if(devcmni->protocol == I2C) {
-        if(DEVIO_isNull(&devcmniio->SCL_SCK) || DEVIO_isNull(&devcmniio->SDA_SDI_OWRE)) {
-            return true;
-        }
-    } else if(devcmni->protocol == SPI) {
-        if(DEVIO_isNull(&devcmniio->SCL_SCK) || (DEVIO_isNull(&devcmniio->SDA_SDI_OWRE) && DEVIO_isNull(&devcmniio->SDO))) {
-            return true;
-        }
-    } else if(devcmni->protocol == ONEWIRE) {
-        if(DEVIO_isNull(&devcmniio->SDA_SDI_OWRE)) {
-            return true;
-        }
-    }
-    return false;
-}
 //    I2C/SPI/ONEWIRE通信总线初始化函数
 void DEVCMNI_BusInit(DEVCMNI_TypeDef *devcmni) {
     if(devcmni->protocol == I2C) {
@@ -492,56 +397,56 @@ void DEVCMNI_BusInit(DEVCMNI_TypeDef *devcmni) {
         devmdlr->bus = devcmni->bus;
         devcmni->bus = NULL;
         if(devcmni->ware == SOFTWARE) {
-#ifdef I2C_USEPOINTER
+#ifdef DEVI2C_USEPOINTER
             I2C_SoftHandleTypeDef *devbus = devmdlr->bus;
             devbus->SCL_Set = DEVCMNI_SCL_Set;
             devbus->SDA_Set = DEVCMNI_SDA_OWRE_Set;
             devbus->SCL_Out = DEVCMNI_SCL_SCK_Out;
-            devbus->SDA_Out = DEVCMNI_SDA_SDI_OWRE_Out;
+            devbus->SDA_Out = DEVCMNI_SDA_SDI_RXD_OWRE_Out;
             devbus->SCL_In = DEVCMNI_SCL_In;
             devbus->SDA_In = DEVCMNI_SDA_OWRE_In;
             devbus->error = DEVCMNI_Error;
             devbus->delayus = DEVCMNI_Delayus;
             devbus->delayms = DEVCMNI_Delayms;
             devbus->delayus_paral = DEVCMNI_Delayus_paral;
-#endif
+#endif    // !DEVI2C_USEPOINTER
         }
     } else if(devcmni->protocol == SPI) {
         SPI_ModuleHandleTypeDef *devmdlr = devcmni->modular;
         devmdlr->bus = devcmni->bus;
         devcmni->bus = NULL;
         if(devcmni->ware == SOFTWARE) {
-#ifdef SPI_USEPOINTER
+#ifdef DEVSPI_USEPOINTER
             SPI_SoftHandleTypeDef *devbus = devmdlr->bus;
             devbus->SCK_Out = DEVCMNI_SCL_SCK_Out;
-            devbus->SDI_Out = DEVCMNI_SDA_SDI_OWRE_Out;
+            devbus->SDI_RXD_Out = DEVCMNI_SDA_SDI_RXD_OWRE_Out;
             devbus->CS_Out = DEVCMNI_CS_Out;
             devbus->error = DEVCMNI_Error;
             devbus->delayus = DEVCMNI_Delayus;
             devbus->delayms = DEVCMNI_Delayms;
             devbus->delayus_paral = DEVCMNI_Delayus_paral;
-#endif
-        }
-    } else if(devcmni->protocol == ONEWIRE) {
-        ONEWIRE_ModuleHandleTypeDef *devmdlr = devcmni->modular;
-        devmdlr->bus = devcmni->bus;
-        devcmni->bus = NULL;
-        if(devcmni->ware == SOFTWARE) {
-#ifdef OWRE_USEPOINTER
-            ONEWIRE_SoftHandleTypeDef *devbus = devmdlr->bus;
-            devbus->OWIO_Set = DEVCMNI_SDA_OWRE_Set;
-            devbus->OWIO_Out = DEVCMNI_SDA_SDI_OWRE_Out;
-            devbus->OWIO_In = DEVCMNI_SDA_OWRE_In;
-            devbus->error = DEVCMNI_Error;
-            devbus->delayus = DEVCMNI_Delayus;
-            devbus->delayms = DEVCMNI_Delayms;
-            devbus->delayus_paral = DEVCMNI_Delayus_paral;
-#endif
+#endif    // !DEVSPI_USEPOINTER
         }
     } else if(devcmni->protocol == USART) {
         UART_ModuleHandleTypeDef *devmdlr = devcmni->modular;
         devmdlr->bus = devcmni->bus;
         devcmni->bus = NULL;
+    } else if(devcmni->protocol == ONEWIRE) {
+        ONEWIRE_ModuleHandleTypeDef *devmdlr = devcmni->modular;
+        devmdlr->bus = devcmni->bus;
+        devcmni->bus = NULL;
+        if(devcmni->ware == SOFTWARE) {
+#ifdef DEVOWRE_USEPOINTER
+            ONEWIRE_SoftHandleTypeDef *devbus = devmdlr->bus;
+            devbus->OWIO_Set = DEVCMNI_SDA_OWRE_Set;
+            devbus->OWIO_Out = DEVCMNI_SDA_SDI_RXD_OWRE_Out;
+            devbus->OWIO_In = DEVCMNI_SDA_OWRE_In;
+            devbus->error = DEVCMNI_Error;
+            devbus->delayus = DEVCMNI_Delayus;
+            devbus->delayms = DEVCMNI_Delayms;
+            devbus->delayus_paral = DEVCMNI_Delayus_paral;
+#endif    // !DEVOWRE_USEPOINTER
+        }
     }
 }
 //    I2C/SPI/ONEWIRE通信设备初始化函数
@@ -564,10 +469,10 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
             }
             devcmniio->SCL_SCK.Init.Structure = GPIO_InitStructure;
             devcmniio->SCL_SCK.Init.State = DEVIO_PIN_SET;
-            devcmniio->SDA_SDI_OWRE.Init.Structure = GPIO_InitStructure;
-            devcmniio->SDA_SDI_OWRE.Init.State = DEVIO_PIN_SET;
-            DEVIO_Init(&devcmniio->SCL_SCK);         //初始化SCL
-            DEVIO_Init(&devcmniio->SDA_SDI_OWRE);    //初始化SDA
+            devcmniio->SDA_SDO_TXD_OWRE.Init.Structure = GPIO_InitStructure;
+            devcmniio->SDA_SDO_TXD_OWRE.Init.State = DEVIO_PIN_SET;
+            DEVIO_Init(&devcmniio->SCL_SCK);             //初始化SCL
+            DEVIO_Init(&devcmniio->SDA_SDO_TXD_OWRE);    //初始化SDA
         } else if(devcmni->ware == HARDWARE) {
             //hal库的硬件I2C初始化,待补充
         }
@@ -579,20 +484,20 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
             devcmniio->SCL_SCK.Init.Structure = GPIO_InitStructure;
             devcmniio->SCL_SCK.Init.State = DEVIO_PIN_SET;
             DEVIO_Init(&devcmniio->SCL_SCK);    //初始化SCK
-            if(!DEVIO_isNull(&devcmniio->SDA_SDI_OWRE)) {
-                devcmniio->SDA_SDI_OWRE.Init.Structure = GPIO_InitStructure;
-                devcmniio->SDA_SDI_OWRE.Init.State = DEVIO_PIN_SET;
-                DEVIO_Init(&devcmniio->SDA_SDI_OWRE);    //初始化SDI
+            if(!isDevIoNull(&devcmniio->SDA_SDO_TXD_OWRE)) {
+                devcmniio->SDA_SDO_TXD_OWRE.Init.Structure = GPIO_InitStructure;
+                devcmniio->SDA_SDO_TXD_OWRE.Init.State = DEVIO_PIN_SET;
+                DEVIO_Init(&devcmniio->SDA_SDO_TXD_OWRE);    //初始化SDI_RXD
             }
-            if(!DEVIO_isNull(&devcmniio->SDO)) {
+            if(!isDevIoNull(&devcmniio->SDI_RXD)) {
                 GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD;
                 GPIO_InitStructure.Pull = GPIO_PULLUP;
                 GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-                devcmniio->SDO.Init.Structure = GPIO_InitStructure;
-                devcmniio->SDO.Init.State = DEVIO_PIN_SET;
-                DEVIO_Init(&devcmniio->SDO);    //初始化SDO
+                devcmniio->SDI_RXD.Init.Structure = GPIO_InitStructure;
+                devcmniio->SDI_RXD.Init.State = DEVIO_PIN_SET;
+                DEVIO_Init(&devcmniio->SDI_RXD);    //初始化SDO
             }
-            if(!DEVIO_isNull(&devcmniio->CS)) {
+            if(!isDevIoNull(&devcmniio->CS)) {
                 GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
                 GPIO_InitStructure.Pull = GPIO_NOPULL;
                 GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_MEDIUM;
@@ -603,17 +508,17 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
         } else if(devcmni->ware == HARDWARE) {
             //hal库的硬件SPI初始化,待补充
         }
+    } else if(devcmni->protocol == USART) {
+        //...
     } else if(devcmni->protocol == ONEWIRE) {
         if(devcmni->ware == SOFTWARE) {
             GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD;
             GPIO_InitStructure.Pull = GPIO_PULLUP;
             GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-            devcmniio->SDA_SDI_OWRE.Init.Structure = GPIO_InitStructure;
-            devcmniio->SDA_SDI_OWRE.Init.State = DEVIO_PIN_SET;
-            DEVIO_Init(&devcmniio->SDA_SDI_OWRE);    //初始化OWIO
+            devcmniio->SDA_SDO_TXD_OWRE.Init.Structure = GPIO_InitStructure;
+            devcmniio->SDA_SDO_TXD_OWRE.Init.State = DEVIO_PIN_SET;
+            DEVIO_Init(&devcmniio->SDA_SDO_TXD_OWRE);    //初始化OWIO
         }
-    } else if(devcmni->protocol == USART) {
-        //...
     }
 #elif defined(STM32FWLIB)
     GPIO_InitTypeDef GPIO_InitStructure = {0};
@@ -629,10 +534,10 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
             }
             devcmniio->SCL_SCK.Init.Structure = GPIO_InitStructure;
             devcmniio->SCL_SCK.Init.State = DEVIO_PIN_SET;
-            devcmniio->SDA_SDI_OWRE.Init.Structure = GPIO_InitStructure;
-            devcmniio->SDA_SDI_OWRE.Init.State = DEVIO_PIN_SET;
-            DEVIO_Init(&devcmniio->SCL_SCK);         //初始化SCL
-            DEVIO_Init(&devcmniio->SDA_SDI_OWRE);    //初始化SDA
+            devcmniio->SDA_SDO_TXD_OWRE.Init.Structure = GPIO_InitStructure;
+            devcmniio->SDA_SDO_TXD_OWRE.Init.State = DEVIO_PIN_SET;
+            DEVIO_Init(&devcmniio->SCL_SCK);             //初始化SCL
+            DEVIO_Init(&devcmniio->SDA_SDO_TXD_OWRE);    //初始化SDA
         } else if(devcmni->ware == HARDWARE) {
             //固件库的硬件I2C初始化,待补充
         }
@@ -643,19 +548,19 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
             devcmniio->SCL_SCK.Init.Structure = GPIO_InitStructure;
             devcmniio->SCL_SCK.Init.State = DEVIO_PIN_SET;
             DEVIO_Init(&devcmniio->SCL_SCK);    //初始化SCK
-            if(!DEVIO_isNull(&devcmniio->SDA_SDI_OWRE)) {
-                devcmniio->SDA_SDI_OWRE.Init.Structure = GPIO_InitStructure;
-                devcmniio->SDA_SDI_OWRE.Init.State = DEVIO_PIN_SET;
-                DEVIO_Init(&devcmniio->SDA_SDI_OWRE);    //初始化SDI
+            if(!isDevIoNull(&devcmniio->SDA_SDO_TXD_OWRE)) {
+                devcmniio->SDA_SDO_TXD_OWRE.Init.Structure = GPIO_InitStructure;
+                devcmniio->SDA_SDO_TXD_OWRE.Init.State = DEVIO_PIN_SET;
+                DEVIO_Init(&devcmniio->SDA_SDO_TXD_OWRE);    //初始化SDI_RXD
             }
-            if(!DEVIO_isNull(&devcmniio->SDO)) {
+            if(!isDevIoNull(&devcmniio->SDI_RXD)) {
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
                 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-                devcmniio->SDO.Init.Structure = GPIO_InitStructure;
-                devcmniio->SDO.Init.State = DEVIO_PIN_SET;
-                DEVIO_Init(&devcmniio->SDO);    //初始化SDO
+                devcmniio->SDI_RXD.Init.Structure = GPIO_InitStructure;
+                devcmniio->SDI_RXD.Init.State = DEVIO_PIN_SET;
+                DEVIO_Init(&devcmniio->SDI_RXD);    //初始化SDO
             }
-            if(!DEVIO_isNull(&devcmniio->CS)) {
+            if(!isDevIoNull(&devcmniio->CS)) {
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
                 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
                 devcmniio->CS.Init.Structure = GPIO_InitStructure;
@@ -665,23 +570,23 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
         } else if(devcmni->ware == HARDWARE) {
             //固件库的硬件SPI初始化,待补充
         }
+    } else if(devcmni->protocol == USART) {
+        //...
     } else if(devcmni->protocol == ONEWIRE) {
         if(devcmni->ware == SOFTWARE) {
             GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
             GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-            devcmniio->SDA_SDI_OWRE.Init.Structure = GPIO_InitStructure;
-            devcmniio->SDA_SDI_OWRE.Init.State = DEVIO_PIN_SET;
-            DEVIO_Init(&devcmniio->SDA_SDI_OWRE);    //初始化OWIO
+            devcmniio->SDA_SDO_TXD_OWRE.Init.Structure = GPIO_InitStructure;
+            devcmniio->SDA_SDO_TXD_OWRE.Init.State = DEVIO_PIN_SET;
+            DEVIO_Init(&devcmniio->SDA_SDO_TXD_OWRE);    //初始化OWIO
         }
-    } else if(devcmni->protocol == USART) {
-        //...
     }
 #endif
 }
 //    I2C/SPI/ONEWIRE通信驱动函数
 bool DEVCMNI_ReadBit(uint8_t address) {
     bool bit = 0;
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
     void *handle = devcmni->modular;
     if(devcmni->protocol == ONEWIRE) {
         if(devcmni->ware == SOFTWARE) {
@@ -694,8 +599,8 @@ bool DEVCMNI_ReadBit(uint8_t address) {
 }
 uint8_t DEVCMNI_ReadByte(uint8_t address) {
     uint8_t byte = 0;
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_getActDevCmniIo()[_actDev->cmni.numnow];
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
+    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
     void *handle = devcmni->modular;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
@@ -737,8 +642,8 @@ uint8_t DEVCMNI_ReadByte(uint8_t address) {
     return byte;
 }
 void DEVCMNI_WriteByte(uint8_t byte, uint8_t address) {
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_getActDevCmniIo()[_actDev->cmni.numnow];
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
+    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
     void *handle = devcmni->modular;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
@@ -779,8 +684,8 @@ void DEVCMNI_WriteByte(uint8_t byte, uint8_t address) {
     }
 }
 DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address) {
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_getActDevCmniIo()[_actDev->cmni.numnow];
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
+    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
     void *handle = devcmni->modular;
     DEV_StatusTypeDef res;
     if(devcmni->protocol == I2C) {
@@ -813,24 +718,24 @@ DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint
             }
 #endif    // DEVSPI_HARDWARE_ENABLED
         }
-    } else if(devcmni->protocol == ONEWIRE) {
-        if(devcmni->ware == SOFTWARE) {
-#if defined(DEVOWRE_SOFTWARE_ENABLED)
-            res = DEVONEWIRE_Read((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size);
-#endif    // DEVOWRE_SOFTWARE_ENABLED
-        }
     } else if(devcmni->protocol == USART) {
         if(devcmni->ware == HARDWARE) {
 #if defined(DEVUART_HARDWARE_ENABLED)
             res = DEVUART_Receive((UART_ModuleHandleTypeDef *)handle, pdata, size, length);
 #endif    // DEVUART_HARDWARE_ENABLED
         }
+    } else if(devcmni->protocol == ONEWIRE) {
+        if(devcmni->ware == SOFTWARE) {
+#if defined(DEVOWRE_SOFTWARE_ENABLED)
+            res = DEVONEWIRE_Read((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size);
+#endif    // DEVOWRE_SOFTWARE_ENABLED
+        }
     }
     return res;
 }
 DEV_StatusTypeDef DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_getActDevCmniIo()[_actDev->cmni.numnow];
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
+    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
     void *handle = devcmni->modular;
     DEV_StatusTypeDef res;
     if(devcmni->protocol == I2C) {
@@ -863,32 +768,139 @@ DEV_StatusTypeDef DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
             }
 #endif    // DEVSPI_HARDWARE_ENABLED
         }
-    } else if(devcmni->protocol == ONEWIRE) {
-        if(devcmni->ware == SOFTWARE) {
-#if defined(DEVOWRE_SOFTWARE_ENABLED)
-            res = DEVONEWIRE_Write((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size, 0xff);
-#endif    // DEVOWRE_SOFTWARE_ENABLED
-        }
     } else if(devcmni->protocol == USART) {
         if(devcmni->ware == HARDWARE) {
 #if defined(DEVUART_HARDWARE_ENABLED)
             res = DEVUART_Transmit((UART_ModuleHandleTypeDef *)handle, pdata, size);
 #endif    // DEVUART_HARDWARE_ENABLED
         }
+    } else if(devcmni->protocol == ONEWIRE) {
+        if(devcmni->ware == SOFTWARE) {
+#if defined(DEVOWRE_SOFTWARE_ENABLED)
+            res = DEVONEWIRE_Write((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size, 0xff);
+#endif    // DEVOWRE_SOFTWARE_ENABLED
+        }
     }
     return res;
 }
 
 
-/////////////////////////    设备构造&错误处理部分    /////////////////////////
+/*****   设备构造&错误处理部分   *****/
+static bool isDevNull(DEV_TypeDef *dev) {
+    if(dev == NULL || dev == NULL) {
+        return true;
+    }
+    return false;
+}
+static bool isDevsNull(DEVS_TypeDef *devs, DEV_TypeDef dev[]) {
+    if(devs == NULL) {
+        return true;
+    }
+    for(poolsize i = 0; i < devs->size; i++) {
+        if(isDevNull(&dev[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+static inline bool isDevIoNull(DEVIO_TypeDef *devio) {
+    //todo: 模仿hal库, 改为使用assert_param进行有效性判断
+#if defined(STM32)
+    if(devio->GPIOx == NULL) {
+        return true;
+    }
+#if defined(USE_LLLIB) && defined(USE_FULL_LL_DRIVER)
+    if(devio->GPIO_Pin == (uint16_t)0x0000) {
+        return true;
+    }
+#else
+    if(devio->GPIO_Pin == (uint32_t)(0x00000000)) {
+        return true;
+    }
+#endif
+#endif
+    return false;
+}
+static bool isDevCmniNull(DEVCMNI_TypeDef *devcmni) {
+    if(devcmni->protocol == 0 || devcmni->ware == 0) {    //若设备通信配置未正确配置, 则返回
+        return true;
+    }
+    if(devcmni->modular == NULL) {    //若设备句柄为空, 则返回
+        return true;
+    }
+    return false;
+}
+static bool isDevCmniBusNull(DEVCMNI_TypeDef *devcmni) {
+    if(devcmni->bus == NULL) {    //若总线句柄两处均为空, 则返回
+        if(devcmni->protocol == I2C) {
+            if(((I2C_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
+                return true;
+            }
+        } else if(devcmni->protocol == SPI) {
+            if(((SPI_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
+                return true;
+            }
+        } else if(devcmni->protocol == USART) {
+            if(((UART_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
+                return true;
+            }
+        } else if(devcmni->protocol == ONEWIRE) {
+            if(((ONEWIRE_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+static bool isDevCmniIoNull(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
+    if(devcmni->protocol == I2C) {
+        if(isDevIoNull(&devcmniio->SCL_SCK) || isDevIoNull(&devcmniio->SDA_SDO_TXD_OWRE)) {
+            return true;
+        }
+    } else if(devcmni->protocol == SPI) {
+        if(isDevIoNull(&devcmniio->SCL_SCK) || (isDevIoNull(&devcmniio->SDA_SDO_TXD_OWRE) && isDevIoNull(&devcmniio->SDI_RXD))) {
+            return true;
+        }
+    } else if(devcmni->protocol == ONEWIRE) {
+        if(isDevIoNull(&devcmniio->SDA_SDO_TXD_OWRE)) {
+            return true;
+        }
+    }
+    return false;
+}
+/**
+ * @description: 初始化一个设备类, 从设备池中分配空闲指针指向设备数组, 并将序号更新至设备类句柄中
+ * @param {DEVS_TypeDef} *devs
+ * @param {DEV_TypeDef} dev
+ * @param {poolsize} num
+ * @return {*}
+ */
+static bool initDevPool(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size) {
+    if(devs->type == DEVUNDEF || _devSize + size >= DEVPOOL_MAXNUM) {
+        return true;    //申请失败
+    }
+    devs->stream = 0;
+    devs->pool = _devSize;
+    devs->size += size;
+    _devSize += size;
+    for(poolsize i = 0; i < size; i++) {
+        dev[i].type = devs->type;
+        dev[i].state = 0;
+        dev[i].error = 0;
+        _devPool[devs->pool + i] = &dev[i];
+    }
+    return false;
+}
+
 /**
  * @description:
  * @param {int8_t} err
  * @return {*}
  */
 void DEV_Error(uint16_t err) {
-    DEVS_TypeDef *actdevs = DEV_getActDevs();
-    DEV_TypeDef *actdev = DEV_getActDev();
+    DEVS_TypeDef *actdevs = DEV_GetActDevs();
+    DEV_TypeDef *actdev = DEV_GetActDev();
     poolsize stream = actdevs->stream;
 
     printf("[ERROR!!!] %d\r\n", err ^ (actdevs->type << 8));
@@ -898,7 +910,7 @@ void DEV_Error(uint16_t err) {
         while(1)
             ;
     } else if(err >= 0x0100) {
-        DEV_setActStream(actdevs, stream);
+        DEV_SetActStream(actdevs, stream);
         actdev->error = 1;
     }
 }
@@ -908,12 +920,12 @@ void DEV_ioConfigur(void) {
     }
 }
 void DEV_ioInit(void) {
-    for(poolsize i = sizeof(DEVCMNIIO_TypeDef) / sizeof(DEVIO_TypeDef); i < DEV_getActDev()->io.num; i++) {
-        if(DEVIO_isNull(&DEV_getActDevIo()[i])) {
+    for(poolsize i = sizeof(DEVCMNIIO_TypeDef) / sizeof(DEVIO_TypeDef); i < DEV_GetActDev()->io.num; i++) {
+        if(isDevIoNull(&DEV_GetActDevIo()[i])) {
             DEV_Error(DEVIO_NOFOUND);
             continue;
         }
-        DEVIO_Init(&DEV_getActDevIo()[i]);
+        DEVIO_Init(&DEV_GetActDevIo()[i]);
     }
 }
 
@@ -938,21 +950,21 @@ void DEV_ioInit(void) {
 //     return false;
 // }
 void DEV_cmniConfigur(void) {
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
-    DEVCMNIIO_TypeDef *devio = DEV_getActDevCmniIo();
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
+    DEVCMNIIO_TypeDef *devio = DEV_GetActDevCmniIo();
     // poolsize num = 0;
-    for(poolsize i = 0; i < DEV_getActDev()->cmni.num; i++) {
-        if(DEVCMNI_isNull(&devcmni[i]) || DEVCMNIBUS_isNull(&devcmni[i])) {    //检查通信配置有效性
+    for(poolsize i = 0; i < DEV_GetActDev()->cmni.num; i++) {
+        if(isDevCmniNull(&devcmni[i]) || isDevCmniBusNull(&devcmni[i])) {    //检查通信配置有效性
             DEV_Error(DEVCMNI_NOFOUND);
             devcmni[i].bus = NULL;
             continue;
         }
-        if(DEVCMNIIO_isNull(&devcmni[i], &devio[i])) {    //检查通信IO有效性
+        if(isDevCmniIoNull(&devcmni[i], &devio[i])) {    //检查通信IO有效性
             DEV_Error(DEVCMNIIO_NOFOUND);
             devcmni[i].bus = NULL;
             continue;
         }
-        // DEV_TypeDef bus = {.io = {.num = sizeof(DEVCMNIIO_TypeDef) / sizeof(DEVIO_TypeDef), .confi = DEV_getActDevIo()},
+        // DEV_TypeDef bus = {.io = {.num = sizeof(DEVCMNIIO_TypeDef) / sizeof(DEVIO_TypeDef), .confi = DEV_GetActDevIo()},
         //                    .cmni = {.num = 1, .confi = devcmni[i].bus}};
         // if(BUSPOOL_Init(&bus, 1)) {
         //     DEV_Error(DEV_POOLFULL);
@@ -960,20 +972,20 @@ void DEV_cmniConfigur(void) {
         DEVCMNI_BusInit(&devcmni[i]);
         // num++;
     }
-    // if(DEVPOOL_init(&_bus, &_buspool[_bussize], num)) {
+    // if(initDevPool(&_bus, &_buspool[_bussize], num)) {
     //     DEV_Error(DEV_POOLFULL);
     // }
 }
 void DEV_cmniInit(void) {
-    DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
-    DEVCMNIIO_TypeDef *devio = DEV_getActDevCmniIo();
-    for(poolsize i = 0; i < DEV_getActDev()->cmni.num; i++) {
-        if(DEVCMNI_isNull(&devcmni[i]) || DEVCMNIBUS_isNull(&devcmni[i])) {    //检查通信配置有效性
+    DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
+    DEVCMNIIO_TypeDef *devio = DEV_GetActDevCmniIo();
+    for(poolsize i = 0; i < DEV_GetActDev()->cmni.num; i++) {
+        if(isDevCmniNull(&devcmni[i]) || isDevCmniBusNull(&devcmni[i])) {    //检查通信配置有效性
             DEV_Error(DEVCMNI_NOFOUND);
             devcmni[i].bus = NULL;
             continue;
         }
-        if(DEVCMNIIO_isNull(&devcmni[i], &devio[i])) {    //检查通信IO有效性
+        if(isDevCmniIoNull(&devcmni[i], &devio[i])) {    //检查通信IO有效性
             DEV_Error(DEVCMNIIO_NOFOUND);
             devcmni[i].bus = NULL;
             continue;
@@ -982,14 +994,14 @@ void DEV_cmniInit(void) {
     }
 }
 void DEV_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size) {
-    if(DEVS_isNull(devs, dev)) {
+    if(isDevsNull(devs, dev)) {
         DEV_Error(DEV_NOFOUND);
     }
-    if(DEVPOOL_init(devs, dev, size)) {    //初始化一类设备实例到设备池中
+    if(initDevPool(devs, dev, size)) {    //初始化一类设备实例到设备池中
         DEV_Error(DEV_POOLFULL);
     }
-    DEV_doAction(devs, DEV_ioConfigur);
-    DEV_doAction(devs, DEV_cmniConfigur);
-    DEV_doAction(devs, DEV_ioInit);      //设备IO初始化
-    DEV_doAction(devs, DEV_cmniInit);    //设备通信初始化
+    DEV_DoAction(devs, DEV_ioConfigur);
+    DEV_DoAction(devs, DEV_cmniConfigur);
+    DEV_DoAction(devs, DEV_ioInit);      //设备IO初始化
+    DEV_DoAction(devs, DEV_cmniInit);    //设备通信初始化
 }

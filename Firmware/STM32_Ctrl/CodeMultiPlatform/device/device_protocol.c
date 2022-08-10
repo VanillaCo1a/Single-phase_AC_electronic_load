@@ -1,10 +1,11 @@
 #include "device.h"
 #include "device_protocol.h"
+
 //tofix: ac5编译不支持__weak函数在别处定义为inline
 __weak void DEVCMNI_SCL_Set(bool dir) {}
 __weak void DEVCMNI_SDA_OWRE_Set(bool dir) {}
 __weak void DEVCMNI_SCL_SCK_Out(bool pot) {}
-__weak void DEVCMNI_SDA_SDI_OWRE_Out(bool pot) {}
+__weak void DEVCMNI_SDA_SDI_RXD_OWRE_Out(bool pot) {}
 __weak bool DEVCMNI_SCL_In(void) { return HIGH; }
 __weak bool DEVCMNI_SDA_OWRE_In(void) { return HIGH; }
 __weak bool DEVCMNI_SDO_In(void) { return HIGH; }
@@ -15,7 +16,7 @@ __weak void DEVCMNI_Delayms(uint64_t ms) {}
 __weak int8_t DEVCMNI_Delayus_paral(uint64_t us) { return 1; }
 
 
-/***  HARDWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION   *****/
 #if defined(DEVI2C_HARDWARE_ENABLED)
 DEV_StatusTypeDef DEVI2C_Transmit_H(
     I2C_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, uint8_t address, bool rw, uint32_t timeout) {
@@ -57,7 +58,7 @@ DEV_StatusTypeDef DEVI2C_Transmit_H(
 #endif    // DEVI2C_HARDWARE_ENABLED
 
 
-/***  HARDWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION   *****/
 #if defined(DEVSPI_HARDWARE_ENABLED)
 DEV_StatusTypeDef DEVSPI_Transmit_H(
     SPI_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, bool rw, uint32_t timeout) {
@@ -99,13 +100,13 @@ DEV_StatusTypeDef DEVSPI_Transmit_H(
 #endif    // DEVSPI_HARDWARE_ENABLED
 
 
-/***  HARDWARE IMPLEMENTATION FUNCTION OF 1-WIRE DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF 1-WIRE DEVICE COMMUNITCATION   *****/
 #if defined(DEVOWRE_HARDWARE_ENABLED)
 
 #endif    // DEVOWRE_HARDWARE_ENABLED
 
 
-/***  HARDWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION  ***/
+/*****   HARDWARE IMPLEMENTATION FUNCTION OF UART DEVICE COMMUNITCATION   *****/
 #if defined(DEVUART_HARDWARE_ENABLED)
 static UART_ModuleHandleTypeDef *uartmodular;
 static void DEVUART_Init(UART_ModuleHandleTypeDef *modular) {
@@ -301,4 +302,5 @@ static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus) {
     }
     return NULL;
 }
+
 #endif    // DEVUART_HARDWARE_ENABLED

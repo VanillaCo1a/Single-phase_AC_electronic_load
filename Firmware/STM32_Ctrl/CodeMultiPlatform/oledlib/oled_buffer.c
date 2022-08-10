@@ -1,15 +1,15 @@
-/***    原作者哔哩哔哩:                            MjGame         https://space.bilibili.com/38673747
-            同GifHub:                                maoyongjie     https://github.com/hello-myj/stm32_oled/
-            代码整理注释删减增加优化等 哔哩哔哩:    一只程序缘    https://space.bilibili.com/237304109
-            整理之前的原代码随本代码一同提供,浏览以上网址获取更多相关信息,本代码以征得原作同意,感谢原作
+/***    原作者哔哩哔哩:                       MjGame         https://space.bilibili.com/38673747
+        同GifHub:                            maoyongjie     https://github.com/hello-myj/stm32_oled/
+        代码整理注释删减增加优化等 哔哩哔哩:    一只程序缘      https://space.bilibili.com/237304109
+        整理之前的原代码随本代码一同提供,浏览以上网址获取更多相关信息,本代码以征得原作同意,感谢原作  ***/
     
-        此c文件用于对屏幕数组进行操作
+/***    此c文件用于对屏幕数组进行操作
         数组包括屏幕缓冲和临时缓冲
         函数只会目前选择的缓冲进行操作
         目前选择的缓冲可通过函数设置上面两个缓冲之一
         
         然后就是提供读或写入取缓冲中的8位数据或1位数据的接口
-        最后是更新缓冲数据到屏幕                    ***/
+        最后是更新缓冲数据到屏幕  ***/
 
 #include "oled_buffer.h"
 

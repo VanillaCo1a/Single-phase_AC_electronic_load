@@ -27,14 +27,14 @@ uint32_t TIMER_getRunTimes(void);
 输入: 延时时间  输出: 无 */
 #define delayus_timer(TIME) ({while(!delayus_timer_paral(TIME)); })
 #define delayms_timer(TIME) ({while(!delayms_timer_paral(TIME)); })
-#define delays_timer(TIME) ({while(!delays_timer_paral(TIME)); })
+#define delays_timer(TIME)  ({while(!delays_timer_paral(TIME)); })
 /* delay_timer_paral(查询终止型), 查询到延时结束后恢复至停止状态, 再次调用时才进行下次计时
 输入: 延时时间  输出: 延时情况(1延时结束/0延时未结束) */
 #define delayus_timer_paral(TIME) ({ static volatile uint64_t compare = 0;   static volatile int8_t state = 0; \
     TIMER_uscmptor(TIME, &compare, &state); })
 #define delayms_timer_paral(TIME) ({ static volatile uint64_t compare = 0;   static volatile int8_t state = 0; \
     TIMER_mscmptor(TIME, &compare, &state); })
-#define delays_timer_paral(TIME) ({ static volatile uint64_t compare = 0;   static volatile int8_t state = 0; \
+#define delays_timer_paral(TIME)  ({ static volatile uint64_t compare = 0;   static volatile int8_t state = 0; \
     TIMER_scmptor(TIME, &compare, &state); })
 /* delay_Timer_paral(查询重装型), 查询到延时结束后开始下次计时
 输入: 延时时间(若为0则视为停止计时,返回0)  输出: 延时情况(1延时结束(查询后自动开始下一次计时)/0延时未结束) */
@@ -46,7 +46,7 @@ uint32_t TIMER_getRunTimes(void);
     typeof(TIMER_mscmptor(TIME, &compare, &state)) result = TIMER_mscmptor(TIME, &compare, &state); \
     if(TIME==0) result = state = 0;     else if(result==1) TIMER_mscmptor(TIME, &compare, &state); \
     result; })
-#define delays_Timer_paral(TIME) ({ static volatile uint64_t compare = 0;   static volatile int8_t state = 0; \
+#define delays_Timer_paral(TIME)  ({ static volatile uint64_t compare = 0;   static volatile int8_t state = 0; \
     typeof(TIMER_scmptor(TIME, &compare, &state)) result = TIMER_scmptor(TIME, &compare, &state); \
     if(TIME==0) result = state = 0;     else if(result==1) TIMER_scmptor(TIME, &compare, &state); \
     result; })

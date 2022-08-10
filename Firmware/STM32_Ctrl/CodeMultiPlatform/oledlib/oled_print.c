@@ -1,10 +1,7 @@
-/***    原作者哔哩哔哩:                            MjGame         https://space.bilibili.com/38673747
-            同GifHub:                                maoyongjie     https://github.com/hello-myj/stm32_oled/
-            代码整理注释删减增加优化等 哔哩哔哩:    一只程序缘    https://space.bilibili.com/237304109
-            整理之前的原代码随本代码一同提供,浏览以上网址获取更多相关信息,本代码以征得原作同意,感谢原作     ***/
-            
-#include "oled_print.h"
-
+/***    原作者哔哩哔哩:                       MjGame         https://space.bilibili.com/38673747
+        同GifHub:                            maoyongjie     https://github.com/hello-myj/stm32_oled/
+        代码整理注释删减增加优化等 哔哩哔哩:    一只程序缘      https://space.bilibili.com/237304109
+        整理之前的原代码随本代码一同提供,浏览以上网址获取更多相关信息,本代码以征得原作同意,感谢原作  ***/
 
 /***    此部分用于配置oled
         注意!!! 
@@ -17,7 +14,9 @@
     
         对字体进行操作
         设置字体背景颜色(字体颜色同划线线条颜色getLineColor())
-        字体尺寸            ***/
+        字体尺寸  ***/
+
+#include "oled_print.h"
 
 //如有需要还可以自己迭代字体颜色 文字背景颜色等
 static Type_color _lineColor = pix_white;
