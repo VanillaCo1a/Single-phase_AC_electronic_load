@@ -23,8 +23,8 @@ static I2C_ModuleHandleTypeDef mi2c[] = {
     {.addr = OLED_I2CADDR1, .skip = false, .speed = DEVI2C_HIGHSPEED, .errhand = DEVI2C_LEVER1}};
 static SPI_ModuleHandleTypeDef mspi[] = {{.skip = false, .duplex = DEVSPI_HALF_DUPLEX}};
 static OLED_CMNITypeDef oled_cmni[] = {
-    {{.protocol = SPI, .ware = SOFTWARE, .bus = &ahi2c, .modular = mi2c}},
-    {{.protocol = SPI, .ware = HARDWARE, .bus = &hi2c1, .modular = mi2c}},
+    {{.protocol = I2C, .ware = SOFTWARE, .bus = &ahi2c, .modular = mi2c}},
+    {{.protocol = I2C, .ware = HARDWARE, .bus = &hi2c1, .modular = mi2c}},
     {{.protocol = SPI, .ware = SOFTWARE, .bus = &ahspi, .modular = mspi}},
     {{.protocol = SPI, .ware = HARDWARE, .bus = &hspi2, .modular = mspi}}};
 static DEVS_TypeDef oleds = {.type = OLED};
