@@ -393,9 +393,7 @@ int8_t DEVCMNI_Delayus_paral(uint64_t us) {
 //    I2C/SPI/ONEWIRE通信总线初始化函数
 void DEVCMNI_BusInit(DEVCMNI_TypeDef *devcmni) {
     if(devcmni->protocol == I2C) {
-        I2C_ModuleHandleTypeDef *devmdlr = devcmni->modular;
-        devmdlr->bus = devcmni->bus;
-        devcmni->bus = NULL;
+        I2C_ModuleHandleTypeDef *devmdlr = (I2C_ModuleHandleTypeDef *)devcmni;
         if(devcmni->ware == SOFTWARE) {
 #ifdef DEVI2C_USEPOINTER
             I2C_SoftHandleTypeDef *devbus = devmdlr->bus;
@@ -412,9 +410,7 @@ void DEVCMNI_BusInit(DEVCMNI_TypeDef *devcmni) {
 #endif    // !DEVI2C_USEPOINTER
         }
     } else if(devcmni->protocol == SPI) {
-        SPI_ModuleHandleTypeDef *devmdlr = devcmni->modular;
-        devmdlr->bus = devcmni->bus;
-        devcmni->bus = NULL;
+        SPI_ModuleHandleTypeDef *devmdlr = (SPI_ModuleHandleTypeDef *)devcmni;
         if(devcmni->ware == SOFTWARE) {
 #ifdef DEVSPI_USEPOINTER
             SPI_SoftHandleTypeDef *devbus = devmdlr->bus;
@@ -428,13 +424,13 @@ void DEVCMNI_BusInit(DEVCMNI_TypeDef *devcmni) {
 #endif    // !DEVSPI_USEPOINTER
         }
     } else if(devcmni->protocol == USART) {
-        UART_ModuleHandleTypeDef *devmdlr = devcmni->modular;
-        devmdlr->bus = devcmni->bus;
-        devcmni->bus = NULL;
+#ifdef DEVUART_USEPOINTER
+        UART_ModuleHandleTypeDef *devmdlr = (UART_ModuleHandleTypeDef *)devcmni;
+        if(devcmni->ware == SOFTWARE) {
+        }
+#endif    // !DEVUART_USEPOINTER
     } else if(devcmni->protocol == ONEWIRE) {
-        ONEWIRE_ModuleHandleTypeDef *devmdlr = devcmni->modular;
-        devmdlr->bus = devcmni->bus;
-        devcmni->bus = NULL;
+        ONEWIRE_ModuleHandleTypeDef *devmdlr = (ONEWIRE_ModuleHandleTypeDef *)devcmni;
         if(devcmni->ware == SOFTWARE) {
 #ifdef DEVOWRE_USEPOINTER
             ONEWIRE_SoftHandleTypeDef *devbus = devmdlr->bus;
@@ -456,9 +452,9 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
     //HAL库的初始化可由CubeMX在main函数中完成, 此处会再次对通信的引脚进行初始化
     GPIO_InitTypeDef GPIO_InitStructure = {0};
     if(devcmni->protocol == I2C) {
-        I2C_ModuleHandleTypeDef *devmodular = devcmni->modular;
+        I2C_ModuleHandleTypeDef *devmdlr = (I2C_ModuleHandleTypeDef *)devcmni;
         if(devcmni->ware == SOFTWARE) {
-            if(devmodular->speed >= DEVI2C_ULTRAFAST) {
+            if(devmdlr->speed >= DEVI2C_ULTRAFAST) {
                 GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
                 GPIO_InitStructure.Pull = GPIO_NOPULL;
                 GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -587,7 +583,7 @@ void DEVCMNI_Init(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {
 bool DEVCMNI_ReadBit(uint8_t address) {
     bool bit = 0;
     DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
-    void *handle = devcmni->modular;
+    void *handle = devcmni;
     if(devcmni->protocol == ONEWIRE) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVOWRE_SOFTWARE_ENABLED)
@@ -600,8 +596,8 @@ bool DEVCMNI_ReadBit(uint8_t address) {
 uint8_t DEVCMNI_ReadByte(uint8_t address) {
     uint8_t byte = 0;
     DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
-    void *handle = devcmni->modular;
+    DEVCMNIIO_TypeDef *devio = DEV_GetActDevCmniIo();
+    void *handle = devcmni;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVI2C_SOFTWARE_ENABLED)
@@ -643,8 +639,8 @@ uint8_t DEVCMNI_ReadByte(uint8_t address) {
 }
 void DEVCMNI_WriteByte(uint8_t byte, uint8_t address) {
     DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
-    void *handle = devcmni->modular;
+    DEVCMNIIO_TypeDef *devio = DEV_GetActDevCmniIo();
+    void *handle = devcmni;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVI2C_SOFTWARE_ENABLED)
@@ -685,8 +681,8 @@ void DEVCMNI_WriteByte(uint8_t byte, uint8_t address) {
 }
 DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address) {
     DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
-    void *handle = devcmni->modular;
+    DEVCMNIIO_TypeDef *devio = DEV_GetActDevCmniIo();
+    void *handle = devcmni;
     DEV_StatusTypeDef res;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
@@ -735,8 +731,8 @@ DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint
 }
 DEV_StatusTypeDef DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
     DEVCMNI_TypeDef *devcmni = DEV_GetActDevCmni();
-    DEVCMNIIO_TypeDef *devio = &DEV_GetActDevCmniIo()[_actDev->cmni.numnow];
-    void *handle = devcmni->modular;
+    DEVCMNIIO_TypeDef *devio = DEV_GetActDevCmniIo();
+    void *handle = devcmni;
     DEV_StatusTypeDef res;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
@@ -825,32 +821,12 @@ static bool isDevCmniNull(DEVCMNI_TypeDef *devcmni) {
     if(devcmni->protocol == 0 || devcmni->ware == 0) {    //若设备通信配置未正确配置, 则返回
         return true;
     }
-    if(devcmni->modular == NULL) {    //若设备句柄为空, 则返回
-        return true;
-    }
     return false;
 }
 static bool isDevCmniBusNull(DEVCMNI_TypeDef *devcmni) {
-    if(devcmni->bus == NULL) {    //若总线句柄两处均为空, 则返回
-        if(devcmni->protocol == I2C) {
-            if(((I2C_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        } else if(devcmni->protocol == SPI) {
-            if(((SPI_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        } else if(devcmni->protocol == USART) {
-            if(((UART_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        } else if(devcmni->protocol == ONEWIRE) {
-            if(((ONEWIRE_ModuleHandleTypeDef *)devcmni->modular)->bus == NULL) {
-                return true;
-            }
-        }
+    if(devcmni->bus == NULL) {    //若总线句柄为空, 则返回
+        return true;
     }
-
     return false;
 }
 static bool isDevCmniIoNull(DEVCMNI_TypeDef *devcmni, DEVCMNIIO_TypeDef *devcmniio) {

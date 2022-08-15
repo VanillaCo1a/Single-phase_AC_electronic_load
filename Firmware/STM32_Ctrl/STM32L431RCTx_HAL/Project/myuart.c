@@ -1,32 +1,36 @@
 ﻿#include "myuart.h"
 
 /* 设备参数配置 */
-static UART_ModuleHandleTypeDef msuart[UART_NUM] = {
-    {.usedma = 0},
-    {.usedma = 0}};
-static DEVCMNI_TypeDef uart_cmni[UART_NUM] = {
-    {.protocol = USART, .ware = HARDWARE, .modular = &msuart[0],
+static UART_ModuleHandleTypeDef uart_muart[UART_NUM] = {
+    {.cmni = {
+         .protocol = USART,
+         .ware = HARDWARE,
 #if defined(STM32)
 #if defined(STM32HAL)
-     .bus = &huart1
+         .bus = &huart1,
 #elif defined(STM32FWLIB)
-     .bus = USART1
+         .bus = USART1,
 #endif
 #endif
-    },
-    {.protocol = USART, .ware = HARDWARE, .modular = &msuart[1],
+     },
+     .usedma = 0},
+    {.cmni = {
+         .protocol = USART,
+         .ware = HARDWARE,
 #if defined(STM32)
 #if defined(STM32HAL)
-     .bus = &huart3
+         .bus = &huart3,
 #elif defined(STM32FWLIB)
-     .bus = USART3
+         .bus = USART3,
 #endif
 #endif
-    }};
+     },
+     .usedma = 0},
+};
 DEVS_TypeDef myuarts = {.type = UART};
 DEV_TypeDef myuart[UART_NUM] = {
-    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[0], .init = NULL}},
-    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[1], .init = NULL}}};
+    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_muart[0], .init = NULL}},
+    {.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_muart[1], .init = NULL}}};
 
 /* 方法重写 */
 bool UART1_ScanArray(uint8_t arr[], size_t size, size_t *length) {

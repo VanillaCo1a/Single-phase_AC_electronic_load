@@ -88,11 +88,11 @@ typedef enum {
     DEVI2C_LEVER0 = 1,    //无需从机应答, 在时钟拉伸超时后继续读写下一位, 无视发生的总线仲裁
 } DEVI2C_ErrhandTypeDef;
 typedef struct {                      //I2C总线设备结构体
+    DEVCMNI_TypeDef cmni;             //设备通信基类
     uint8_t addr;                     //模块I2C地址
     bool skip;                        //是否跳过读/写内部寄存器
     DEVI2C_SpeedTypeDef speed;        //模块I2C速率
     DEVI2C_ErrhandTypeDef errhand;    //模块的错误处理方式
-    void *bus;                        //I2C模拟/硬件总线句柄
 } I2C_ModuleHandleTypeDef;
 
 
@@ -102,9 +102,9 @@ typedef enum {
     DEVSPI_HALF_DUPLEX
 } DEVSPI_DuplexTypeTypeDef;
 typedef struct {                        //SPI总线模块结构体
+    DEVCMNI_TypeDef cmni;               //设备通信基类
     bool skip;                          //是否跳过拉低片选
     DEVSPI_DuplexTypeTypeDef duplex;    //设备工作模式
-    void *bus;                          //SPI模拟/硬件总线句柄
 } SPI_ModuleHandleTypeDef;
 
 
@@ -116,19 +116,19 @@ typedef struct {
     volatile DEVCMNI_StatusTypeDef state;
 } UART_BufferTypedef;
 typedef struct {
+    DEVCMNI_TypeDef cmni;
     UART_BufferTypedef receive;
     UART_BufferTypedef transmit;
     bool usedma;
     bool checkidle;
-    void *bus;
 } UART_ModuleHandleTypeDef;
 
 
 /*****   MODULE STRUCTURE DEFINITION & FUNCTION DECLARAION OF 1-WIRE DEVICE COMMUNITCATION   *****/
 typedef struct {
-    uint64_t rom;    //模块64位ROM编码
-    bool skip;       //是否跳过ROM匹配
-    void *bus;       //ONEWIRE总线句柄
+    DEVCMNI_TypeDef cmni;    //设备通信基类
+    uint64_t rom;            //模块64位ROM编码
+    bool skip;               //是否跳过ROM匹配
 } ONEWIRE_ModuleHandleTypeDef;
 
 
@@ -192,10 +192,13 @@ typedef struct {          //I2C模拟总线结构体
 static uint32_t DEVI2C_scl_lowtime = 0, DEVI2C_scl_hightime = 0, DEVI2C_timeout = 0;
 static DEVI2C_ErrorTypeDef i2cerror = DEVI2C_NOERROR;
 static I2C_SoftHandleTypeDef i2cbus = {.clockstretch = true, .arbitration = true};
-static I2C_ModuleHandleTypeDef i2cmodular = {.addr = 0x00, .speed = DEVI2C_STANDARD, .errhand = DEVI2C_LEVER1, .bus = &i2cbus};
+static I2C_ModuleHandleTypeDef i2cmodular = {.cmni = {.protocol = I2C, .ware = SOFTWARE, .bus = &i2cbus},
+                                             .addr = 0x00,
+                                             .speed = DEVI2C_STANDARD,
+                                             .errhand = DEVI2C_LEVER1};
 static int8_t DEVI2C_Init(I2C_ModuleHandleTypeDef *modular, uint32_t timeout) {
     i2cmodular = *modular;
-    i2cbus = *((I2C_SoftHandleTypeDef *)modular->bus);
+    i2cbus = *((I2C_SoftHandleTypeDef *)modular->cmni.bus);
     i2cerror = DEVI2C_NOERROR;
     if(i2cmodular.speed >= DEVI2C_ULTRAFAST) {
         i2cmodular.errhand = DEVI2C_LEVER0;

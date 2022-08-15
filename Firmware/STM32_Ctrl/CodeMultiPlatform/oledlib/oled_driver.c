@@ -19,19 +19,21 @@ static OLED_IOTypeDef oled_io[] = {
 };
 static I2C_SoftHandleTypeDef ahi2c = {.clockstretch = true, .arbitration = true};
 static SPI_SoftHandleTypeDef ahspi = {};
-static I2C_ModuleHandleTypeDef mi2c[] = {
-    {.addr = OLED_I2CADDR1, .skip = false, .speed = DEVI2C_HIGHSPEED, .errhand = DEVI2C_LEVER1}};
-static SPI_ModuleHandleTypeDef mspi[] = {{.skip = false, .duplex = DEVSPI_HALF_DUPLEX}};
-static OLED_CMNITypeDef oled_cmni[] = {
-    {{.protocol = I2C, .ware = SOFTWARE, .bus = &ahi2c, .modular = mi2c}},
-    {{.protocol = I2C, .ware = HARDWARE, .bus = &hi2c1, .modular = mi2c}},
-    {{.protocol = SPI, .ware = SOFTWARE, .bus = &ahspi, .modular = mspi}},
-    {{.protocol = SPI, .ware = HARDWARE, .bus = &hspi2, .modular = mspi}}};
+static I2C_ModuleHandleTypeDef oled_mi2c[] = {
+    {.cmni = {.protocol = I2C, .ware = HARDWARE, .bus = &hi2c1},
+     .addr = OLED_I2CADDR1, .skip = false, .speed = DEVI2C_HIGHSPEED, .errhand = DEVI2C_LEVER1},
+    {.cmni = {.protocol = I2C, .ware = SOFTWARE, .bus = &ahi2c},
+     .addr = OLED_I2CADDR1, .skip = false, .speed = DEVI2C_HIGHSPEED, .errhand = DEVI2C_LEVER1}};
+static SPI_ModuleHandleTypeDef oled_mspi[] = {
+    {.cmni = {.protocol = SPI, .ware = HARDWARE, .bus = &hspi2},
+     .skip = false, .duplex = DEVSPI_HALF_DUPLEX},
+    {.cmni = {.protocol = SPI, .ware = SOFTWARE, .bus = &ahspi},
+     .skip = false, .duplex = DEVSPI_HALF_DUPLEX}};
 static DEVS_TypeDef oleds = {.type = OLED};
 static DEV_TypeDef oled[] = {
     {.parameter = &oled_parameter[0],
      .io = {.num = SIZE_OLEDIO, .confi = (DEVIO_TypeDef *)&oled_io[0], .init = DEVIO_InitCallBack},
-     .cmni = {.num = SIZE_OLEDCMNI, .confi = (DEVCMNI_TypeDef *)&oled_cmni[1], .init = NULL}}};     ***/
+     .cmni = {.num = SIZE_OLEDCMNI, .confi = (DEVCMNI_TypeDef *)&oled_mspi[0], .init = NULL}}};     ***/
 
 
 DEVS_TypeDef *oleds = NULL;
@@ -60,7 +62,7 @@ void DEVIO_InitCallBack(void) {
             ((DEVCMNIIO_TypeDef *)((OLED_IOTypeDef *)DEV_GetActDevIo()))->CS.Init.State = DEVIO_PIN_SET;
         }
         if(((OLED_IOTypeDef *)DEV_GetActDevIo())->DC.GPIOx != NULL) {
-            if(((I2C_ModuleHandleTypeDef *)DEV_GetActDevCmni()->modular)->addr == OLED_I2CADDR1) {    //初始化DC
+            if(((I2C_ModuleHandleTypeDef *)DEV_GetActDevCmni())->addr == OLED_I2CADDR1) {    //初始化DC
                 ((OLED_IOTypeDef *)DEV_GetActDevIo())->DC.Init.Structure = GPIO_InitStructure;
                 ((OLED_IOTypeDef *)DEV_GetActDevIo())->DC.Init.State = DEVIO_PIN_RESET;
             } else {
@@ -106,7 +108,7 @@ void OLED_Deinit(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size) {}
 /* OLED连续写函数 */
 static bool OLED_Write(uint8_t *pdata, uint16_t size, uint8_t address) {
     bool res = false;
-    void *handle = DEV_GetActDevCmni()->modular;
+    void *handle = DEV_GetActDevCmni();
     if(DEV_GetActDevCmni()->protocol == I2C) {
         if(((DEVCMNIIO_TypeDef *)((OLED_IOTypeDef *)DEV_GetActDevIo()))->CS.GPIOx != NULL) {
             DEVIO_ResetPin(&((DEVCMNIIO_TypeDef *)((OLED_IOTypeDef *)DEV_GetActDevIo()))->CS);

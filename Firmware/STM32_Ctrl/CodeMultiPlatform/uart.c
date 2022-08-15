@@ -2,19 +2,21 @@
 #include "usart.h"
 
 /***  串口类, 初始化实例的样例如下:
-static UART_ModuleHandleTypeDef msuart[] = {{.usedma = 0}};
-static DEVCMNI_TypeDef uart_cmni[] = {
-    {.protocol = USART, .ware = HARDWARE, .modular = &msuart[0],
+static UART_ModuleHandleTypeDef uart_muart[UART_NUM] = {
+    {.cmni = {
+         .protocol = USART,
+         .ware = HARDWARE,
 #if defined(STM32)
 #if defined(STM32HAL)
-     .bus = &huart1
+         .bus = &huart1,
 #elif defined(STM32FWLIB)
-     .bus = USART1
+         .bus = USART1,
 #endif
 #endif
-    }};
+     },
+     .usedma = 0}};
 static DEVS_TypeDef myuarts = {.type = UART};
-static DEV_TypeDef myuart[] = {{.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_cmni[0], .init = NULL}}};    ***/
+static DEV_TypeDef myuart[] = {{.parameter = NULL, .io = {0}, .cmni = {.num = 1, .confi = (DEVCMNI_TypeDef *)&uart_muart[0], .init = NULL}}};    ***/
 
 
 static DEVS_TypeDef *uarts = NULL;

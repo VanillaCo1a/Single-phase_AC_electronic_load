@@ -26,10 +26,10 @@ DEV_StatusTypeDef DEVI2C_Transmit_H(
 #if defined(STM32HAL)
 #if defined(HAL_I2C_MODULE_ENABLED)
         rc = (DEVCMNI_StatusTypeDef)HAL_I2C_Mem_Read(
-            modular->bus, (modular->addr << 1) | 0X00, address, I2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
+            modular->cmni.bus, (modular->addr << 1) | 0X00, address, I2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #elif defined(HAL_FMPI2C_MODULE_ENABLED)
         rc = (DEVCMNI_StatusTypeDef)HAL_FMPI2C_Mem_Read(
-            modular->bus, (modular->addr << 1) | 0X00, address, FMPI2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
+            modular->cmni.bus, (modular->addr << 1) | 0X00, address, FMPI2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #endif    // HAL_I2C_MODULE_ENABLED | HAL_FMPI2C_MODULE_ENABLED
 #elif defined(STM32FWLIBF1)
         //固件库的硬件I2C驱动函数,待补充
@@ -38,10 +38,10 @@ DEV_StatusTypeDef DEVI2C_Transmit_H(
 #if defined(STM32HAL)
 #if defined(HAL_I2C_MODULE_ENABLED)
         rc = (DEVCMNI_StatusTypeDef)HAL_I2C_Mem_Write(
-            modular->bus, (modular->addr << 1) | 0X00, address, I2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
+            modular->cmni.bus, (modular->addr << 1) | 0X00, address, I2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #elif defined(HAL_FMPI2C_MODULE_ENABLED)
         rc = (DEVCMNI_StatusTypeDef)HAL_FMPI2C_Mem_Write(
-            modular->bus, (modular->addr << 1) | 0X00, address, FMPI2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
+            modular->cmni.bus, (modular->addr << 1) | 0X00, address, FMPI2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #endif    // HAL_I2C_MODULE_ENABLED | HAL_FMPI2C_MODULE_ENABLED
 #elif defined(STM32FWLIBF1)
         //固件库的硬件I2C驱动函数,待补充
@@ -70,7 +70,7 @@ DEV_StatusTypeDef DEVSPI_Transmit_H(
         if(rw) {
 #if defined(STM32HAL)
 #if defined(HAL_SPI_MODULE_ENABLED)
-            rc = (DEVCMNI_StatusTypeDef)HAL_SPI_Receive(modular->bus, pdata, size, timeout);
+            rc = (DEVCMNI_StatusTypeDef)HAL_SPI_Receive(modular->cmni.bus, pdata, size, timeout);
 #elif defined(HAL_QSPI_MODULE_ENABLED)
             //todo: SPI_Write for QSPI
 #endif    // HAL_SPI_MODULE_ENABLED | HAL_QSPI_MODULE_ENABLED
@@ -80,7 +80,7 @@ DEV_StatusTypeDef DEVSPI_Transmit_H(
         } else {
 #if defined(STM32HAL)
 #if defined(HAL_SPI_MODULE_ENABLED)
-            rc = (DEVCMNI_StatusTypeDef)HAL_SPI_Transmit(modular->bus, pdata, size, timeout);
+            rc = (DEVCMNI_StatusTypeDef)HAL_SPI_Transmit(modular->cmni.bus, pdata, size, timeout);
 #elif defined(HAL_QSPI_MODULE_ENABLED)
             //todo: SPI_Write for QSPI
 #endif    // HAL_SPI_MODULE_ENABLED | HAL_QSPI_MODULE_ENABLED
@@ -237,16 +237,16 @@ static DEVCMNI_StatusTypeDef DEVUART_ReceiveStart(void) {
     if(uartmodular->usedma) {
 #if defined(HAL_DMA_MODULE_ENABLED)
         res = (DEVCMNI_StatusTypeDef)HAL_UARTEx_ReceiveToIdle_DMA(
-            uartmodular->bus, uartmodular->receive.buf, uartmodular->receive.size);
+            uartmodular->cmni.bus, uartmodular->receive.buf, uartmodular->receive.size);
 #endif    // HAL_DMA_MODULE_ENABLED
     } else {
         res = (DEVCMNI_StatusTypeDef)HAL_UARTEx_ReceiveToIdle_IT(
-            uartmodular->bus, uartmodular->receive.buf, uartmodular->receive.size);
+            uartmodular->cmni.bus, uartmodular->receive.buf, uartmodular->receive.size);
     }
 #endif    // HAL_UART_MODULE_ENABLED
 #elif defined(STM32FWLIB)
     FWLIB_UARTEx_ReceiveToIdle_IT(
-        uartmodular->bus, uartmodular->receive.buf, uartmodular->receive.size);
+        uartmodular->cmni.bus, uartmodular->receive.buf, uartmodular->receive.size);
 #endif
 #endif
     return res;
@@ -261,16 +261,16 @@ static DEVCMNI_StatusTypeDef DEVUART_TransmitStart(void) {
     if(uartmodular->usedma) {
 #if defined(HAL_DMA_MODULE_ENABLED)
         res = (DEVCMNI_StatusTypeDef)HAL_UART_Transmit_DMA(
-            uartmodular->bus, uartmodular->transmit.buf, uartmodular->transmit.size);
+            uartmodular->cmni.bus, uartmodular->transmit.buf, uartmodular->transmit.size);
 #endif    // HAL_DMA_MODULE_ENABLED
     } else {
         res = (DEVCMNI_StatusTypeDef)HAL_UART_Transmit_IT(
-            uartmodular->bus, uartmodular->transmit.buf, uartmodular->transmit.size);
+            uartmodular->cmni.bus, uartmodular->transmit.buf, uartmodular->transmit.size);
     }
 #endif    // HAL_UART_MODULE_ENABLED
 #elif defined(STM32FWLIB)
     FWLIB_UART_Transmit_IT(
-        uartmodular->bus, uartmodular->transmit.buf, uartmodular->transmit.size);
+        uartmodular->cmni.bus, uartmodular->transmit.buf, uartmodular->transmit.size);
 #endif
 #endif
     return res;
@@ -296,8 +296,8 @@ extern DEVS_TypeDef *myuarts;
 extern DEV_TypeDef myuart[];
 static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus) {
     for(size_t i = 0; i < myuarts->size; i++) {
-        if(((UART_ModuleHandleTypeDef *)myuart[i].cmni.confi->modular)->bus == bus) {
-            return myuart[i].cmni.confi->modular;
+        if(((UART_ModuleHandleTypeDef *)myuart[i].cmni.confi)->cmni.bus == bus) {
+            return (UART_ModuleHandleTypeDef *)myuart[i].cmni.confi;
         }
     }
     return NULL;

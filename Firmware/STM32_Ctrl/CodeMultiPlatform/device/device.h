@@ -147,11 +147,10 @@ typedef struct {    //设备通信IO结构体
     DEVIO_TypeDef SDI_RXD;
     DEVIO_TypeDef CS;
 } DEVCMNIIO_TypeDef;
-typedef struct {
-    DEVCMNI_ProtocolTypeDef protocol;
-    DEVCMNI_WareTypeDef ware;
-    void *bus;        //总线句柄
-    void *modular;    //模块句柄
+typedef struct {                         //设备通信结构体
+    DEVCMNI_ProtocolTypeDef protocol;    //总线协议类型
+    DEVCMNI_WareTypeDef ware;            //总线驱动方式
+    void *bus;                           //总线句柄
 } DEVCMNI_TypeDef;
 
 /* 设备总体控制 */
@@ -168,7 +167,7 @@ typedef struct {
 } DEV_IOTypeDef;
 typedef struct {
     uint8_t num;
-    uint8_t numnow;
+    // uint8_t numnow;
     DEVCMNI_TypeDef *confi;
     void (*init)(void);
 } DEV_CMNITypeDef;
