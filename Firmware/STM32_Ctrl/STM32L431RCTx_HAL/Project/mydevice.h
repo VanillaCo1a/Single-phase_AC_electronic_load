@@ -26,15 +26,16 @@
 #if defined(STM32)
 #if defined(STM32HAL)
 #include "tim.h"
-#define TIMERERROR 0    //为了修正函数运行带来的误差, 在使用不同型号芯片前需调试计算得到数值
-#define TIMERCOUNT TIM6->CNT
+#define TIMERERROR  0    //为了修正函数运行带来的误差, 在使用不同型号芯片前需调试计算得到数值
+#define TIMERCOUNT  TIM6->CNT
 #define TIMERHANDLE htim6
 #elif defined(STM32FWLIB)
 #define TIMERERROR 0
-#define TIMER TIM4
+#define TIMER      TIM4
 #define TIMERCOUNT TIM4->CNT
 #define TIMER_IRQn TIM4_IRQn
-#define RCC_TIMER RCC_APB1Periph_TIM4
+#define RCC_TIMER  RCC_APB1Periph_TIM4
+#endif
 #endif
 
 /* 通信使用宏定义 */
@@ -51,11 +52,9 @@
 // #define DEVUART_USEPOINTER
 // #define DEVOWRE_USEPOINTER
 
-/* 设备池尺寸宏定义 */
-#define DEV_DEFINE
-#define DEVPOOL_MAXNUM     100    //设备池大小
-#define DEVBUSYLIST_MAXNUM 20     //忙设备列表大小
-typedef uint16_t poolsize;        //池大小的数据类型
-#endif
+/* 设备池宏定义 */
+#define DEVPOOL_MAXNUM     20    //设备池大小
+#define DEVBUSYLIST_MAXNUM 10    //忙设备列表大小
+typedef uint16_t poolsize;       //池大小的数据类型
 
-#endif // !__MYDEVICE_H
+#endif    // !__MYDEVICE_H

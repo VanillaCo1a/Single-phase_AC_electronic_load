@@ -13,30 +13,65 @@
 
 /*****   配置头文件&宏定义   *****/
 #include "mydevice.h"
+#ifndef __MYDEVICE_H
+
+/* 运行环境宏定义 */
+#if !defined(STM32) && !defined(STC89C) && !defined(TC264) && \
+    !defined(TI) && !defined(ESP32) && !defined(HC32)
+// #define STM32
+// #define STC89C
+// #define TC264
+// #define TI
+// #define ESP32
+// #define HC32
+#endif
+#if defined(STM32)
+// #define STM32HAL
+// #define STM32FWLIB
+// #define USE_LLLIB
+// #define USE_REGISTER
+#elif defined(STC89C)
+// #define STC89C51
+// #define STC89C52
+#endif
+
+/* 设备定时器宏定义 */
 #if defined(STM32)
 #if defined(STM32HAL)
-#include "main.h"
+#include "tim.h"
+#define TIMERERROR  0    //为了修正函数运行带来的误差, 在使用不同型号芯片前需调试计算得到数值
+#define TIMERCOUNT  TIM1->CNT
+#define TIMERHANDLE htim1
 #elif defined(STM32FWLIB)
-// #if defined(STM32F1)
-// #include "stm32f10x.h"
-// #elif defined(STM32F4)
-// #include "stm32f4xx.h"
-// #endif
-#include "stm32f10x.h"
+#define TIMERERROR 0
+#define TIMER      TIM1
+#define TIMERCOUNT TIM1->CNT
+#define TIMER_IRQn TIM1_IRQn
+#define RCC_TIMER  RCC_APB1Periph_TIM1
 #endif
 #endif
 
-/*****   设备子文件的头文件   *****/
-#include "device_timer.h"
-#include "device_protocol.h"
+/* 通信使用宏定义 */
+// #define DEVI2C_SOFTWARE_ENABLED
+// #define DEVSPI_SOFTWARE_ENABLED
+// #define DEVUART_SOFTWARE_ENABLED
+// #define DEVOWRE_SOFTWARE_ENABLED
+// #define DEVI2C_HARDWARE_ENABLED
+// #define DEVSPI_HARDWARE_ENABLED
+// #define DEVUART_HARDWARE_ENABLED
+// #define DEVOWRE_HARDWARE_ENABLED
+// #define DEVI2C_USEPOINTER
+// #define DEVSPI_USEPOINTER
+// #define DEVUART_USEPOINTER
+// #define DEVOWRE_USEPOINTER
 
-#ifndef DEV_DEFINE
-#define DEV_DEFINE
-/* 设备池尺寸宏定义 */
-#define DEVPOOL_MAXNUM     20   //设备池大小
-#define DEVBUSYLIST_MAXNUM 10   //忙设备列表大小
+/* 设备池宏定义 */
+#define DEVPOOL_MAXNUM     0    //设备池大小
+#define DEVBUSYLIST_MAXNUM 0    //忙设备列表大小
 typedef uint16_t poolsize;      //池大小的数据类型
-#endif // !DEV_DEFINE
+
+#endif    // !__MYDEVICE_H
+
 
 /*****   枚举   *****/
 typedef enum {
@@ -147,6 +182,11 @@ typedef struct {             //设备结构体
 } DEV_TypeDef;
 
 
+/*****   设备子文件的头文件   *****/
+#include "device_timer.h"
+#include "device_protocol.h"
+
+
 /*****   设备相关函数   *****/
 /* 设备构造&错误处理部分 */
 void DEV_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size);
@@ -177,5 +217,20 @@ uint8_t DEVCMNI_ReadByte(uint8_t address);
 bool DEVCMNI_ReadBit(uint8_t address);
 DEV_StatusTypeDef DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address);
 DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address);
+
+
+/*****   运行环境头文件   *****/
+#if defined(STM32)
+#if defined(STM32HAL)
+#include "main.h"
+#elif defined(STM32FWLIB)
+// #if defined(STM32F1)
+// #include "stm32f10x.h"
+// #elif defined(STM32F4)
+// #include "stm32f4xx.h"
+// #endif
+#include "stm32f10x.h"
+#endif
+#endif
 
 #endif    // !__DEVICE_H
