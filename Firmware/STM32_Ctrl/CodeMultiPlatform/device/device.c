@@ -158,6 +158,19 @@ DEV_StateTypeDef DEV_GetActState(void) {
     return _actDev->state == 0 ? idle : busy;
 }
 /**
+ * @description: 根据某一设备的总线句柄查找该设备的通信句柄, 暂用于中断回调
+ * @param {void} *bus
+ * @return {*}
+ */
+DEVCMNI_TypeDef *DEV_GetCmni(void *bus) {
+    for(size_t i = 0; i < _devSize; i++) {
+        if(_devPool[i]->cmni.confi->bus == bus) {
+            return _devPool[i]->cmni.confi;
+        }
+    }
+    return NULL;
+}
+/**
  * @description: 对某一设备类批量进行某一操作
  * @param {DEVS_TypeDef} *devs
  * @param {void(*)()} *action

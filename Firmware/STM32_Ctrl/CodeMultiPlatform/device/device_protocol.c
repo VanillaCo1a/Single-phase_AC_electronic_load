@@ -117,7 +117,6 @@ static DEVCMNI_StatusTypeDef DEVUART_ReceiveStart(void);
 static DEVCMNI_StatusTypeDef DEVUART_TransmitStart(void);
 static void DEVUART_ReceiveEnd(UART_ModuleHandleTypeDef *muart, size_t count);
 static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart);
-static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus);
 
 /* 串口接收函数 */
 DEV_StatusTypeDef DEVUART_Receive(
@@ -187,7 +186,7 @@ DEV_StatusTypeDef DEVUART_Transmit(
 #if defined(STM32HAL)
 /* 指定空间数据接收完毕中断回调函数 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    UART_ModuleHandleTypeDef *muart = DEVUART_GetModular(huart);
+    UART_ModuleHandleTypeDef *muart = (UART_ModuleHandleTypeDef *)DEV_GetCmni(huart);
     if(huart->RxState == HAL_UART_STATE_READY || huart->hdmarx->State == HAL_DMA_STATE_READY) {
         /* 判断句柄标志位, 是否为数据接收完毕 */
         DEVUART_ReceiveEnd(muart, muart->receive.size);
@@ -195,7 +194,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 /* 指定空间数据半接收/接收完毕/总线空闲时中断回调函数 */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
-    UART_ModuleHandleTypeDef *muart = DEVUART_GetModular(huart);
+    UART_ModuleHandleTypeDef *muart = (UART_ModuleHandleTypeDef *)DEV_GetCmni(huart);
     if(huart->RxState == HAL_UART_STATE_READY || huart->hdmarx->State == HAL_DMA_STATE_READY) {
         /* 判断句柄标志位, 是否为数据接收完毕/总线空闲 */
         DEVUART_ReceiveEnd(muart, size);
@@ -205,23 +204,23 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
 }
 /* 数据发送完毕中断回调函数 */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    UART_ModuleHandleTypeDef *muart = DEVUART_GetModular(huart);
+    UART_ModuleHandleTypeDef *muart = (UART_ModuleHandleTypeDef *)DEV_GetCmni(huart);
     DEVUART_TransmitEnd(muart);
 }
 #elif defined(STM32FWLIB)
 /* 指定空间数据接收完毕中断回调函数 */
 void FWLIB_UART_RxCpltCallback(USART_TypeDef *USARTx) {
-    UART_ModuleHandleTypeDef *muart = DEVUART_GetModular(USARTx);
+    UART_ModuleHandleTypeDef *muart = (UART_ModuleHandleTypeDef *)DEV_GetCmni(USARTx);
     DEVUART_ReceiveEnd(muart, muart->receive.size);
 }
 /* 指定空间数据接收完毕/总线空闲时中断回调函数 */
 void FWLIB_UARTEx_RxEventCallback(USART_TypeDef *USARTx, uint16_t size) {
-    UART_ModuleHandleTypeDef *muart = DEVUART_GetModular(USARTx);
+    UART_ModuleHandleTypeDef *muart = (UART_ModuleHandleTypeDef *)DEV_GetCmni(USARTx);
     DEVUART_ReceiveEnd(muart, size);
 }
 /* 数据发送完毕中断回调函数 */
 void FWLIB_UART_TxCpltCallback(USART_TypeDef *USARTx) {
-    UART_ModuleHandleTypeDef *muart = DEVUART_GetModular(USARTx);
+    UART_ModuleHandleTypeDef *muart = (UART_ModuleHandleTypeDef *)DEV_GetCmni(USARTx);
     DEVUART_TransmitEnd(muart);
 }
 #endif
@@ -289,18 +288,6 @@ static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart) {
     muart->transmit.buf = NULL;
     muart->transmit.size = 0;
     muart->transmit.state = DEVCMNI_UPDATE;
-}
-
-/* 获取串口句柄对应通信句柄 */
-extern DEVS_TypeDef *myuarts;
-extern DEV_TypeDef myuart[];
-static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus) {
-    for(size_t i = 0; i < myuarts->size; i++) {
-        if(((UART_ModuleHandleTypeDef *)myuart[i].cmni.confi)->cmni.bus == bus) {
-            return (UART_ModuleHandleTypeDef *)myuart[i].cmni.confi;
-        }
-    }
-    return NULL;
 }
 
 #endif    // DEVUART_HARDWARE_ENABLED

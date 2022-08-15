@@ -204,6 +204,7 @@ int8_t DEV_SetStream(DEVS_TypeDef *self, poolsize stream);
 DEV_TypeDef *DEV_GetStream(DEVS_TypeDef *self);
 int8_t DEV_SetActState(uint16_t us);
 DEV_StateTypeDef DEV_GetActState(void);
+DEVCMNI_TypeDef *DEV_GetCmni(void *bus);
 void DEV_DoAction(DEVS_TypeDef *devs, void (*action)(void));
 /* 设备IO部分 */
 void DEVIO_SetPin(DEVIO_TypeDef *devio);
