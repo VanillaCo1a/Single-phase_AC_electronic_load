@@ -17,16 +17,17 @@ __weak int8_t DEVCMNI_Delayus_paral(uint64_t us) { return 1; }
 
 /***  HARDWARE IMPLEMENTATION FUNCTION OF I2C DEVICE COMMUNITCATION  ***/
 #if defined(DEVI2C_HARDWARE_ENABLED)
-DEVCMNI_StatusTypeDef DEVI2C_Transmit_H(
+DEV_StatusTypeDef DEVI2C_Transmit_H(
     I2C_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, uint8_t address, bool rw, uint32_t timeout) {
-    DEVCMNI_StatusTypeDef res;
+    DEVCMNI_StatusTypeDef rc;
+    DEV_StatusTypeDef res;
     if(rw) {
 #if defined(STM32HAL)
 #if defined(HAL_I2C_MODULE_ENABLED)
-        res = (DEVCMNI_StatusTypeDef)HAL_I2C_Mem_Read(
+        rc = (DEVCMNI_StatusTypeDef)HAL_I2C_Mem_Read(
             modular->bus, (modular->addr << 1) | 0X00, address, I2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #elif defined(HAL_FMPI2C_MODULE_ENABLED)
-        res = (DEVCMNI_StatusTypeDef)HAL_FMPI2C_Mem_Read(
+        rc = (DEVCMNI_StatusTypeDef)HAL_FMPI2C_Mem_Read(
             modular->bus, (modular->addr << 1) | 0X00, address, FMPI2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #endif    // HAL_I2C_MODULE_ENABLED | HAL_FMPI2C_MODULE_ENABLED
 #elif defined(STM32FWLIBF1)
@@ -35,15 +36,20 @@ DEVCMNI_StatusTypeDef DEVI2C_Transmit_H(
     } else {
 #if defined(STM32HAL)
 #if defined(HAL_I2C_MODULE_ENABLED)
-        res = (DEVCMNI_StatusTypeDef)HAL_I2C_Mem_Write(
+        rc = (DEVCMNI_StatusTypeDef)HAL_I2C_Mem_Write(
             modular->bus, (modular->addr << 1) | 0X00, address, I2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #elif defined(HAL_FMPI2C_MODULE_ENABLED)
-        res = (DEVCMNI_StatusTypeDef)HAL_FMPI2C_Mem_Write(
+        rc = (DEVCMNI_StatusTypeDef)HAL_FMPI2C_Mem_Write(
             modular->bus, (modular->addr << 1) | 0X00, address, FMPI2C_MEMADD_SIZE_8BIT, pdata, size, timeout);
 #endif    // HAL_I2C_MODULE_ENABLED | HAL_FMPI2C_MODULE_ENABLED
 #elif defined(STM32FWLIBF1)
         //固件库的硬件I2C驱动函数,待补充
 #endif
+    }
+    if(rc == DEVCMNI_BUSY) {
+        res = DEV_BUSY;
+    } else if(rc != DEVCMNI_OK) {
+        res = DEV_ERROR;
     }
     return res;
 }
@@ -53,16 +59,17 @@ DEVCMNI_StatusTypeDef DEVI2C_Transmit_H(
 
 /***  HARDWARE IMPLEMENTATION FUNCTION OF SPI DEVICE COMMUNITCATION  ***/
 #if defined(DEVSPI_HARDWARE_ENABLED)
-DEVCMNI_StatusTypeDef DEVSPI_Transmit_H(
+DEV_StatusTypeDef DEVSPI_Transmit_H(
     SPI_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, bool rw, uint32_t timeout) {
-    DEVCMNI_StatusTypeDef res = false;
+    DEVCMNI_StatusTypeDef rc;
+    DEV_StatusTypeDef res;
     if(modular->duplex == DEVSPI_FULL_DUPLEX) {
         //to add
     } else if(modular->duplex == DEVSPI_HALF_DUPLEX) {
         if(rw) {
 #if defined(STM32HAL)
 #if defined(HAL_SPI_MODULE_ENABLED)
-            res = (DEVCMNI_StatusTypeDef)HAL_SPI_Receive(modular->bus, pdata, size, timeout);
+            rc = (DEVCMNI_StatusTypeDef)HAL_SPI_Receive(modular->bus, pdata, size, timeout);
 #elif defined(HAL_QSPI_MODULE_ENABLED)
             //todo: SPI_Write for QSPI
 #endif    // HAL_SPI_MODULE_ENABLED | HAL_QSPI_MODULE_ENABLED
@@ -72,7 +79,7 @@ DEVCMNI_StatusTypeDef DEVSPI_Transmit_H(
         } else {
 #if defined(STM32HAL)
 #if defined(HAL_SPI_MODULE_ENABLED)
-            res = (DEVCMNI_StatusTypeDef)HAL_SPI_Transmit(modular->bus, pdata, size, timeout);
+            rc = (DEVCMNI_StatusTypeDef)HAL_SPI_Transmit(modular->bus, pdata, size, timeout);
 #elif defined(HAL_QSPI_MODULE_ENABLED)
             //todo: SPI_Write for QSPI
 #endif    // HAL_SPI_MODULE_ENABLED | HAL_QSPI_MODULE_ENABLED
@@ -80,6 +87,11 @@ DEVCMNI_StatusTypeDef DEVSPI_Transmit_H(
             //固件库的硬件SPI驱动函数,待补充
 #endif
         }
+    }
+    if(rc == DEVCMNI_BUSY) {
+        res = DEV_BUSY;
+    } else if(rc != DEVCMNI_OK) {
+        res = DEV_ERROR;
     }
     return res;
 }
@@ -107,52 +119,64 @@ static void DEVUART_TransmitEnd(UART_ModuleHandleTypeDef *muart);
 static UART_ModuleHandleTypeDef *DEVUART_GetModular(void *bus);
 
 /* 串口接收函数 */
-DEVCMNI_StatusTypeDef DEVUART_Receive(
+DEV_StatusTypeDef DEVUART_Receive(
     UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size, size_t *length) {
-    DEVCMNI_StatusTypeDef res = DEVCMNI_BUSY;
+    DEV_StatusTypeDef res = DEV_BUSY;
     DEVUART_Init(modular);
-    if(uartmodular->receive.state == DEVCMNI_UPDATE) {
-        *length = uartmodular->receive.count;
-        uartmodular->receive.count = 0;
-        uartmodular->receive.state = DEVCMNI_OK;
-        res = DEVCMNI_OK;
-        return res;
-    }
     if(uartmodular->receive.state == DEVCMNI_OK) {
         /* TODO: Change to use assert */
         if(pdata == NULL || size == 0) {
-            return DEVCMNI_BUSY;
+            res = DEV_ERROR;
+            return res;
         }
         uartmodular->receive.buf = pdata;
         uartmodular->receive.size = size;
-        if (DEVUART_ReceiveStart() == DEVCMNI_OK) {
-            uartmodular->receive.state = DEVCMNI_BUSY;
+        uartmodular->receive.state = DEVCMNI_BUSY;
+        if(DEVUART_ReceiveStart() != DEVCMNI_OK) {
+            uartmodular->receive.state = DEVCMNI_OK;
+            res = DEV_ERROR;
+            return res;
         }
+        res = DEV_SET;
+    }
+    if(uartmodular->receive.state == DEVCMNI_UPDATE) {
+        *length = uartmodular->receive.count;
+        uartmodular->receive.count = 0;
+        uartmodular->receive.buf = NULL;
+        uartmodular->receive.size = 0;
+        uartmodular->receive.state = DEVCMNI_OK;
+        res = DEV_OK;
     }
     return res;
 }
 
 /* 串口发送函数 */
-DEVCMNI_StatusTypeDef DEVUART_Transmit(
+DEV_StatusTypeDef DEVUART_Transmit(
     UART_ModuleHandleTypeDef *modular, uint8_t *pdata, size_t size) {
-    DEVCMNI_StatusTypeDef res = DEVCMNI_BUSY;
+    DEV_StatusTypeDef res = DEV_BUSY;
     DEVUART_Init(modular);
-    if(uartmodular->transmit.state == DEVCMNI_UPDATE) {
-        uartmodular->transmit.count = 0;
-        uartmodular->transmit.state = DEVCMNI_OK;
-        res = DEVCMNI_OK;
-        // return res;
-    }
     if(uartmodular->transmit.state == DEVCMNI_OK) {
         /* TODO: Change to use assert */
         if(pdata == NULL || size == 0) {
-            return DEVCMNI_BUSY;
+            res = DEV_ERROR;
+            return res;
         }
         uartmodular->transmit.buf = pdata;
         uartmodular->transmit.size = size;
-        if (DEVUART_TransmitStart() == DEVCMNI_OK) {
-            uartmodular->transmit.state = DEVCMNI_BUSY;
+        uartmodular->transmit.state = DEVCMNI_BUSY;
+        if(DEVUART_TransmitStart() != DEVCMNI_OK) {
+            uartmodular->transmit.state = DEVCMNI_OK;
+            res = DEV_ERROR;
+            return res;
         }
+        res = DEV_SET;
+    }
+    if(uartmodular->transmit.state == DEVCMNI_UPDATE) {
+        uartmodular->transmit.count = 0;
+        uartmodular->transmit.buf = NULL;
+        uartmodular->transmit.size = 0;
+        uartmodular->transmit.state = DEVCMNI_OK;
+        res = DEV_OK;
     }
     return res;
 }

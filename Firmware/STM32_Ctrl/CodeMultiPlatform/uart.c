@@ -38,33 +38,36 @@ void UART_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize uSize, char *buf,
 /* TODO: 串口析构函数 */
 void UART_Deinit(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size) {}
 
-bool UART_ScanArray(int8_t num, uint8_t arr[], size_t size, size_t *length) {
+bool UART_ScanArray(int8_t num, uint8_t arr[], size_t size, size_t *length, DEV_StatusTypeDef wait) {
     DEV_setActStream(uarts, num);
-    return DEVCMNI_Read((uint8_t *)arr, size, length, 0xFF);
+    return (DEVCMNI_Read((uint8_t *)arr, size, length, 0xFF) == wait);
 }
-bool UART_ScanString(int8_t num, char *str, size_t size) {
+bool UART_ScanString(int8_t num, char *str, size_t size, DEV_StatusTypeDef wait) {
+    DEV_StatusTypeDef rc;
     bool res = false;
     size_t length;
     DEV_setActStream(uarts, num);
-    res = DEVCMNI_Read((uint8_t *)str, size - 1, &length, 0xFF);
-    if(res) {
+    if((rc = DEVCMNI_Read((uint8_t *)str, size - 1, &length, 0xFF)) == wait) {
+        res = true;
+    }
+    if(rc == DEV_OK) {
         str[length] = '\0';
     }
     return res;
 }
-bool UART_PrintArray(int8_t num, const uint8_t arr[], size_t size) {
+bool UART_PrintArray(int8_t num, const uint8_t arr[], size_t size, DEV_StatusTypeDef wait) {
     DEV_setActStream(uarts, num);
-    return DEVCMNI_Write((uint8_t *)arr, size, 0xFF);
+    return (DEVCMNI_Write((uint8_t *)arr, size, 0xFF) == wait);
 }
-bool UART_PrintString(int8_t num, const char *str) {
+bool UART_PrintString(int8_t num, const char *str, DEV_StatusTypeDef wait) {
     DEV_setActStream(uarts, num);
-    return DEVCMNI_Write((uint8_t *)str, strlen(str), 0xFF);
+    return (DEVCMNI_Write((uint8_t *)str, strlen(str), 0xFF) == wait);
 }
-bool UART_Printf(int8_t num, char *str, ...) {
+bool UART_Printf(int8_t num, char *str, DEV_StatusTypeDef wait, ...) {
     va_list args;
     va_start(args, str);
     vsnprintf(va_buf, va_size, (char *)str, args);
     va_end(args);
     DEV_setActStream(uarts, num);
-    return UART_PrintString(0, va_buf);
+    return UART_PrintString(0, va_buf, wait);
 }

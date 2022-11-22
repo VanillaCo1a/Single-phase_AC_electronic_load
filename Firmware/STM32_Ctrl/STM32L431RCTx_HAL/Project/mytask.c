@@ -38,13 +38,11 @@ void DEBUG_SYSTEM_Task(void) {
         // fputs((char *)my_uart_buf, stdin);
         if(!uartReceive) {
             if(UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf))) {
-                UART1_ScanString((char *)my_uart_buf, lenof(my_uart_buf));
                 uartReceive = true;
             }
         }
         if(uartReceive) {
             if(UART1_PrintString((char *)my_uart_buf)) {
-                UART1_PrintString((char *)my_uart_buf);
                 uartReceive = false;
                 /* 置忙500ms */
                 DEV_setActState(25000);

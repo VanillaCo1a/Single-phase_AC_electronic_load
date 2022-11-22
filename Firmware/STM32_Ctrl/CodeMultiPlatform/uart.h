@@ -6,10 +6,10 @@ void UART_Init(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize uSize, char *buf,
 /* TODO: 串口析构函数 */
 void UART_Deinit(DEVS_TypeDef *devs, DEV_TypeDef dev[], poolsize size);
 /* 串口通信函数 */
-bool UART_ScanArray(int8_t num, uint8_t arr[], size_t size, size_t *length);
-bool UART_ScanString(int8_t num, char *str, size_t size);
-bool UART_PrintArray(int8_t num, const uint8_t arr[], size_t size);
-bool UART_PrintString(int8_t num, const char *str);
-bool UART_Printf(int8_t num, char *str, ...);
+bool UART_ScanArray(int8_t num, uint8_t arr[], size_t size, size_t *length, DEV_StatusTypeDef wait);
+bool UART_ScanString(int8_t num, char *str, size_t size, DEV_StatusTypeDef wait);
+bool UART_PrintArray(int8_t num, const uint8_t arr[], size_t size, DEV_StatusTypeDef wait);
+bool UART_PrintString(int8_t num, const char *str, DEV_StatusTypeDef wait);
+bool UART_Printf(int8_t num, char *str, DEV_StatusTypeDef wait, ...);
 
 #endif

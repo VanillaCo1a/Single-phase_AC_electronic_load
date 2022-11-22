@@ -169,7 +169,7 @@ DEVIO_PinState DEVIO_ReadPin(DEVIO_TypeDef *devio);
 void DEVCMNI_WriteByte(uint8_t data, uint8_t address);
 uint8_t DEVCMNI_ReadByte(uint8_t address);
 bool DEVCMNI_ReadBit(uint8_t address);
-bool DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address);
-bool DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address);
+DEV_StatusTypeDef DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address);
+DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address);
 
 #endif    // !__DEVICE_H

@@ -778,25 +778,25 @@ void DEVCMNI_WriteByte(uint8_t byte, uint8_t address) {
         }
     }
 }
-bool DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address) {
+DEV_StatusTypeDef DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address) {
     DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
     DEVCMNIIO_TypeDef *devio = &DEV_getActDevCmniIo()[_actDev->cmni.numnow];
     void *handle = devcmni->modular;
-    bool res = true;
+    DEV_StatusTypeDef res;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVI2C_SOFTWARE_ENABLED)
-            res = !DEVI2C_Transmit((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 1, 0xff);
+            res = DEVI2C_Transmit((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 1, 0xff);
 #endif    // DEVI2C_SOFTWARE_ENABLED
         } else if(devcmni->ware == HARDWARE) {
 #if defined(DEVI2C_HARDWARE_ENABLED)
-            res = !DEVI2C_Transmit_H((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 1, 0xff);
+            res = DEVI2C_Transmit_H((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 1, 0xff);
 #endif    // DEVI2C_HARDWARE_ENABLED
         }
     } else if(devcmni->protocol == SPI) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVSPI_SOFTWARE_ENABLED)
-            res = !DEVSPI_Transmit(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 1, 0xff);
+            res = DEVSPI_Transmit(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 1, 0xff);
 #endif    // DEVSPI_SOFTWARE_ENABLED
         } else if(devcmni->ware == HARDWARE) {
 #if defined(DEVSPI_HARDWARE_ENABLED)
@@ -805,7 +805,7 @@ bool DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address) 
                     DEVIO_ResetPin(&devio->CS);
                 }
             }
-            res = !DEVSPI_Transmit_H(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 1, 0xff);
+            res = DEVSPI_Transmit_H(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 1, 0xff);
             if(!((SPI_ModuleHandleTypeDef *)handle)->skip) {
                 if(devio->CS.GPIOx != NULL) {
                     DEVIO_SetPin(&devio->CS);
@@ -816,37 +816,37 @@ bool DEVCMNI_Read(uint8_t *pdata, size_t size, size_t *length, uint8_t address) 
     } else if(devcmni->protocol == ONEWIRE) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVOWRE_SOFTWARE_ENABLED)
-            res = !DEVONEWIRE_Read((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size);
+            res = DEVONEWIRE_Read((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size);
 #endif    // DEVOWRE_SOFTWARE_ENABLED
         }
     } else if(devcmni->protocol == USART) {
         if(devcmni->ware == HARDWARE) {
 #if defined(DEVUART_HARDWARE_ENABLED)
-            res = !DEVUART_Receive((UART_ModuleHandleTypeDef *)handle, pdata, size, length);
+            res = DEVUART_Receive((UART_ModuleHandleTypeDef *)handle, pdata, size, length);
 #endif    // DEVUART_HARDWARE_ENABLED
         }
     }
     return res;
 }
-bool DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
+DEV_StatusTypeDef DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
     DEVCMNI_TypeDef *devcmni = DEV_getActDevCmni();
     DEVCMNIIO_TypeDef *devio = &DEV_getActDevCmniIo()[_actDev->cmni.numnow];
     void *handle = devcmni->modular;
-    bool res = true;
+    DEV_StatusTypeDef res;
     if(devcmni->protocol == I2C) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVI2C_SOFTWARE_ENABLED)
-            res = !DEVI2C_Transmit((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 0, 0xff);
+            res = DEVI2C_Transmit((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 0, 0xff);
 #endif    // DEVI2C_SOFTWARE_ENABLED
         } else if(devcmni->ware == HARDWARE) {
 #if defined(DEVI2C_HARDWARE_ENABLED)
-            res = !DEVI2C_Transmit_H((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 0, 0xff);
+            res = DEVI2C_Transmit_H((I2C_ModuleHandleTypeDef *)handle, pdata, size, address, 0, 0xff);
 #endif    // DEVI2C_HARDWARE_ENABLED
         }
     } else if(devcmni->protocol == SPI) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVSPI_SOFTWARE_ENABLED)
-            res = !DEVSPI_Transmit(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 0, 0xff);
+            res = DEVSPI_Transmit(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 0, 0xff);
 #endif    // DEVSPI_SOFTWARE_ENABLED
         } else if(devcmni->ware == HARDWARE) {
 #if defined(DEVSPI_HARDWARE_ENABLED)
@@ -855,7 +855,7 @@ bool DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
                     DEVIO_ResetPin(&devio->CS);
                 }
             }
-            res = !DEVSPI_Transmit_H(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 0, 0xff);
+            res = DEVSPI_Transmit_H(((SPI_ModuleHandleTypeDef *)handle), pdata, size, 0, 0xff);
             if(!((SPI_ModuleHandleTypeDef *)handle)->skip) {
                 if(devio->CS.GPIOx != NULL) {
                     DEVIO_SetPin(&devio->CS);
@@ -866,13 +866,13 @@ bool DEVCMNI_Write(uint8_t *pdata, size_t size, uint8_t address) {
     } else if(devcmni->protocol == ONEWIRE) {
         if(devcmni->ware == SOFTWARE) {
 #if defined(DEVOWRE_SOFTWARE_ENABLED)
-            res = !DEVONEWIRE_Write((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size, 0xff);
+            res = DEVONEWIRE_Write((ONEWIRE_ModuleHandleTypeDef *)handle, pdata, size, 0xff);
 #endif    // DEVOWRE_SOFTWARE_ENABLED
         }
     } else if(devcmni->protocol == USART) {
         if(devcmni->ware == HARDWARE) {
 #if defined(DEVUART_HARDWARE_ENABLED)
-            res = !DEVUART_Transmit((UART_ModuleHandleTypeDef *)handle, pdata, size);
+            res = DEVUART_Transmit((UART_ModuleHandleTypeDef *)handle, pdata, size);
 #endif    // DEVUART_HARDWARE_ENABLED
         }
     }
